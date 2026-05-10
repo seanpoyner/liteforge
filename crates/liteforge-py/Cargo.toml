@@ -1,0 +1,26 @@
+[package]
+name = "liteforge-py"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Python bindings for liteforge"
+
+[lib]
+name = "liteforge"
+crate-type = ["cdylib"]
+
+[dependencies]
+liteforge-core = { package = "liteforge", path = "../liteforge" }
+pyo3 = { workspace = true }
+pyo3-asyncio-0-21 = { workspace = true }
+tokio = { workspace = true }
+serde_json = { workspace = true }
+futures = { workspace = true }
+
+[features]
+default = []
+# Pull through the core crate's `otel` feature so Python users can build
+# a wheel that includes OTLP export. Without this feature, the OTel
+# config kwargs and `init_otel()` still exist but are no-ops.
+otel = ["liteforge-core/otel"]

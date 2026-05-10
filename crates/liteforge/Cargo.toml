@@ -1,0 +1,55 @@
+[package]
+name = "liteforge"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Rust SDK for LiteForge - LLM completions via OpenAI-compatible API"
+keywords = ["llm", "ai", "openai", "bedrock", "anthropic"]
+categories = ["api-bindings", "asynchronous"]
+
+[dependencies]
+reqwest = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+futures = { workspace = true }
+async-stream = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+bytes = { workspace = true }
+thiserror = { workspace = true }
+dotenvy = { workspace = true }
+tracing = { workspace = true }
+regex = "1"
+unicode-segmentation = "1.10"
+once_cell = "1"
+humantime-serde = "1"
+
+# Optional OTel deps — pulled in only when `otel` feature is enabled.
+opentelemetry = { workspace = true, optional = true }
+opentelemetry_sdk = { workspace = true, optional = true }
+opentelemetry-otlp = { workspace = true, optional = true }
+opentelemetry-http = { workspace = true, optional = true }
+tracing-opentelemetry = { workspace = true, optional = true }
+reqwest-middleware = { workspace = true, optional = true }
+reqwest-tracing = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tempfile = "3"
+
+[features]
+default = []
+# Adds OTel propagation, span emission, and OTLP export. Off by default
+# so callers that don't want the deps (CLI, embedded uses) keep a small
+# build. Enable with `--features otel`.
+otel = [
+    "dep:opentelemetry",
+    "dep:opentelemetry_sdk",
+    "dep:opentelemetry-otlp",
+    "dep:opentelemetry-http",
+    "dep:tracing-opentelemetry",
+    "dep:reqwest-middleware",
+    "dep:reqwest-tracing",
+]

@@ -1,0 +1,94 @@
+site_name: LiteForge (Rust)
+site_description: High-performance Rust SDK for the Travel Innovation Platform with Python and JavaScript/TypeScript bindings
+site_url: https://seanpoyner.github.io/liteforge/
+repo_url: https://gitea.poyner.ai/sean/liteforge
+repo_name: seanpoyner/liteforge
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets
+  - tables
+  - toc:
+      permalink: true
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation Guide: installation.md
+    - SDK Setup: getting-started.md
+    - Quick Start: quickstart.md
+    - Configuration: configuration.md
+  - Guides:
+    - Streaming: guides/streaming.md
+    - Tools & Function Calling: guides/tools.md
+    - RAG Pipeline: guides/rag.md
+    - Agents: guides/agents.md
+    - Guardrails: guides/guardrails.md
+    - Observability: guides/observability.md
+    - MCP Integration: guides/mcp.md
+  - API Reference:
+    - Client: api/client.md
+    - Types: api/types.md
+    - Error Handling: api/errors.md
+    - Streaming: api/streaming.md
+    - Tools: api/tools.md
+    - Knowledge Base: api/knowledge.md
+    - RAG: api/rag.md
+    - Agents: api/agents.md
+    - Orchestration: api/orchestration.md
+    - Events & Hooks: api/events.md
+    - Guardrails: api/guardrails.md
+    - Observability: api/observability.md
+    - Retry: api/retry.md
+    - Scheduler: api/scheduler.md
+    - Evals: api/evals.md
+    - MCP: api/mcp.md
+    - Skills: api/skills.md
+    - Prompts: api/prompts.md
+    - Pipelines: api/pipelines.md
+    - Automation: api/automation.md
+    - Images: api/images.md
+    - Conversation: api/conversation.md
+    - Human-in-the-Loop: api/hitl.md
+    - Triggers: api/triggers.md
+  - Python Bindings: python/index.md
+  - JavaScript/TypeScript Bindings: javascript/index.md
+  - CLI Reference: cli.md

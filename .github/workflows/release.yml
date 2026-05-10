@@ -1,0 +1,378 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Build CLI binaries for all platforms
+  build-cli:
+    name: Build CLI (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            archive: tar.gz
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            archive: tar.gz
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            archive: tar.gz
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            archive: zip
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross-compilation tools (Linux ARM)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - name: Build CLI
+        run: cargo build --release --package forge-cli --target ${{ matrix.target }}
+
+      - name: Create archive (Unix)
+        if: matrix.archive == 'tar.gz'
+        run: |
+          cd target/${{ matrix.target }}/release
+          tar -czvf ../../../forge-cli-${{ matrix.target }}.tar.gz forge
+          cd ../../..
+
+      - name: Create archive (Windows)
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path target/${{ matrix.target }}/release/forge.exe -DestinationPath forge-cli-${{ matrix.target }}.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: forge-cli-${{ matrix.target }}
+          path: forge-cli-${{ matrix.target }}.${{ matrix.archive }}
+
+  # Build Python wheels
+  build-python:
+    name: Build Python wheels (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+
+      - name: Install maturin
+        run: pip install maturin
+
+      - name: Build wheel
+        working-directory: crates/liteforge-py
+        run: maturin build --release --out dist
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-wheels-${{ matrix.os }}
+          path: crates/liteforge-py/dist/*.whl
+
+  # Build Python source distribution
+  build-python-sdist:
+    name: Build Python sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install maturin
+        run: pip install maturin
+
+      - name: Build sdist
+        working-directory: crates/liteforge-py
+        run: maturin sdist --out dist
+
+      - name: Upload sdist
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-sdist
+          path: crates/liteforge-py/dist/*.tar.gz
+
+  # Build Node.js package
+  build-nodejs:
+    name: Build Node.js package (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+
+      - name: Install dependencies
+        working-directory: crates/liteforge-js
+        run: npm install
+
+      - name: Build
+        working-directory: crates/liteforge-js
+        run: npm run build
+
+      - name: Pack
+        working-directory: crates/liteforge-js
+        run: npm pack
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nodejs-package-${{ matrix.os }}
+          path: crates/liteforge-js/*.tgz
+
+  # Create GitHub Release
+  release:
+    name: Create Release
+    needs: [build-cli, build-python, build-python-sdist, build-nodejs]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release-assets
+
+          # CLI binaries
+          find artifacts -name "forge-cli-*.tar.gz" -exec cp {} release-assets/ \;
+          find artifacts -name "forge-cli-*.zip" -exec cp {} release-assets/ \;
+
+          # Python wheels - combine all platforms
+          find artifacts -name "*.whl" -exec cp {} release-assets/ \;
+          find artifacts -name "liteforge-*.tar.gz" -exec cp {} release-assets/ \;
+
+          # Node.js package - use one (they should be identical)
+          find artifacts -name "liteforge-*.tgz" | head -1 | xargs -I {} cp {} release-assets/liteforge.tgz
+
+          # Install scripts
+          cp scripts/install.sh release-assets/
+          cp scripts/install.ps1 release-assets/
+
+          # CA certificate bundle
+          cp certs/combined-full-ca-bundle.crt release-assets/ca-bundle.crt
+
+          ls -la release-assets/
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Extract version from tag
+          VERSION=${GITHUB_REF#refs/tags/v}
+
+          # Generate simple changelog from commits
+          echo "## What's Changed" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          git log --oneline --no-decorate $(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")..HEAD | head -20 >> CHANGELOG.md || echo "Initial release" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "## Installation" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### Quick Install (macOS/Linux)" >> CHANGELOG.md
+          echo '```bash' >> CHANGELOG.md
+          echo 'git clone https://gitea.poyner.ai/sean/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge' >> CHANGELOG.md
+          echo '```' >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### Quick Install (Windows)" >> CHANGELOG.md
+          echo '```powershell' >> CHANGELOG.md
+          echo 'git clone https://gitea.poyner.ai/sean/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge' >> CHANGELOG.md
+          echo '```' >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### Homebrew (macOS/Linux)" >> CHANGELOG.md
+          echo '```bash' >> CHANGELOG.md
+          echo 'brew tap sean/forge https://gitea.poyner.ai/sean/homebrew-forge.git' >> CHANGELOG.md
+          echo 'brew install forge-cli' >> CHANGELOG.md
+          echo '```' >> CHANGELOG.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: ${{ contains(github.ref, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Publish Node.js package to Artifactory
+  publish-nodejs:
+    name: Publish Node.js to Artifactory
+    needs: [build-nodejs]
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref, '-') }}  # Skip for prereleases
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download Node.js artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: nodejs-package-*
+          path: artifacts
+
+      - name: Configure npm for Artifactory
+        run: |
+          echo "@forge:registry=https://registry.npmjs.org/" > ~/.npmrc
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.ARTIFACTORY_NPM_TOKEN }}" >> ~/.npmrc
+
+      - name: Publish to Artifactory
+        working-directory: crates/liteforge-js
+        run: |
+          # Extract version from tag
+          VERSION=${GITHUB_REF#refs/tags/v}
+
+          # Update package version to match tag
+          npm version $VERSION --no-git-tag-version
+
+          # Install dependencies and build
+          npm install
+          npm run build
+
+          # Publish to Artifactory
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_NPM_TOKEN }}
+
+  # Update Homebrew tap
+  update-homebrew:
+    name: Update Homebrew Tap
+    needs: [release]
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref, '-') }}  # Skip for prereleases
+
+    steps:
+      - name: Checkout homebrew-forge
+        uses: actions/checkout@v4
+        with:
+          repository: sean/homebrew-forge
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-forge
+
+      - name: Download CLI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: forge-cli-*
+          path: artifacts
+
+      - name: Calculate checksums
+        id: checksums
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          for file in artifacts/forge-cli-*/forge-cli-*.tar.gz artifacts/forge-cli-*/forge-cli-*.zip; do
+            if [[ -f "$file" ]]; then
+              name=$(basename "$file")
+              sha=$(sha256sum "$file" | cut -d' ' -f1)
+              # Convert filename to variable name
+              varname=$(echo "$name" | sed 's/[.-]/_/g' | sed 's/tar_gz/sha/g' | sed 's/zip/sha/g')
+              echo "${varname}=${sha}" >> $GITHUB_OUTPUT
+            fi
+          done
+
+      - name: Update formula
+        run: |
+          VERSION=${{ steps.checksums.outputs.version }}
+          RELEASE_URL="https://gitea.poyner.ai/sean/liteforge/releases/download/v${VERSION}"
+
+          cat > homebrew-forge/Formula/forge-cli.rb << 'EOF'
+          class TipCli < Formula
+            desc "LiteForge CLI for AI development"
+            homepage "https://gitea.poyner.ai/sean/liteforge"
+            version "${{ steps.checksums.outputs.version }}"
+            license "MIT"
+
+            on_macos do
+              on_arm do
+                url "${RELEASE_URL}/forge-cli-aarch64-apple-darwin.tar.gz"
+                sha256 "${{ steps.checksums.outputs.forge_cli_aarch64_apple_darwin_sha }}"
+              end
+              on_intel do
+                url "${RELEASE_URL}/forge-cli-x86_64-apple-darwin.tar.gz"
+                sha256 "${{ steps.checksums.outputs.forge_cli_x86_64_apple_darwin_sha }}"
+              end
+            end
+
+            on_linux do
+              on_arm do
+                url "${RELEASE_URL}/forge-cli-aarch64-unknown-linux-gnu.tar.gz"
+                sha256 "${{ steps.checksums.outputs.forge_cli_aarch64_unknown_linux_gnu_sha }}"
+              end
+              on_intel do
+                url "${RELEASE_URL}/forge-cli-x86_64-unknown-linux-gnu.tar.gz"
+                sha256 "${{ steps.checksums.outputs.forge_cli_x86_64_unknown_linux_gnu_sha }}"
+              end
+            end
+
+            def install
+              bin.install "forge"
+            end
+
+            test do
+              assert_match "forge", shell_output("#{bin}/forge --version")
+            end
+          end
+          EOF
+
+      - name: Commit and push
+        working-directory: homebrew-forge
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add Formula/forge-cli.rb
+          git commit -m "Update forge-cli to ${{ steps.checksums.outputs.version }}"
+          git push
