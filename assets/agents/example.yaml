@@ -1,0 +1,44 @@
+# Example LiteForge Agent Configuration
+# Copy this file to ~/.config/forge/agents/ (or your configured agents directory)
+
+name: example
+description: A simple example agent with web search - demonstrates builtin tools
+
+# Model to use (overrides LITEFORGE_DEFAULT_MODEL)
+model: anthropic.claude-haiku-4-5-20251001-v1:0
+
+# System prompt that defines the agent's behavior
+system_prompt: |
+  You are a helpful assistant. Answer questions clearly and concisely.
+  When appropriate, provide examples to illustrate your explanations.
+  If you're unsure about something, say so rather than guessing.
+
+# LLM settings
+temperature: 0.7
+max_tokens: 2048
+
+# Tools available to this agent
+tools:
+  - name: web_search
+    description: Search the web using DuckDuckGo Instant Answers (no API key required)
+    tool_type: builtin
+    parameters:
+      type: object
+      properties:
+        query:
+          type: string
+          description: The search query
+      required:
+        - query
+
+# MCP servers to connect to (empty for this basic example)
+# For MCP tool examples, see filesystem.yaml
+mcp_servers: []
+
+# Custom metadata
+metadata:
+  author: LiteForge Team
+  version: "1.0"
+  tags:
+    - example
+    - getting-started

@@ -1,0 +1,23 @@
+[package]
+name = "liteforge-java"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Java bindings for liteforge via JNI"
+
+[lib]
+name = "liteforge_java"
+crate-type = ["cdylib"]
+
+[dependencies]
+liteforge = { path = "../liteforge" }
+jni = "0.21"
+tokio = { workspace = true }
+serde_json = { workspace = true }
+futures = { workspace = true }
+thiserror = { workspace = true }
+
+[features]
+default = []
+otel = ["liteforge/otel"]

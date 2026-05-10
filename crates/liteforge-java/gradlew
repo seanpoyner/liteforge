@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# Gradle wrapper script
+# This is a minimal wrapper that downloads and uses the Gradle distribution
+
+GRADLE_VERSION="8.5"
+GRADLE_DIST_URL="https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip"
+GRADLE_HOME="${HOME}/.gradle/wrapper/dists/gradle-${GRADLE_VERSION}"
+
+if [ ! -d "${GRADLE_HOME}" ]; then
+    echo "Downloading Gradle ${GRADLE_VERSION}..."
+    mkdir -p "${GRADLE_HOME}"
+    curl -sL "${GRADLE_DIST_URL}" -o /tmp/gradle.zip
+    unzip -q /tmp/gradle.zip -d "${GRADLE_HOME}"
+    rm /tmp/gradle.zip
+fi
+
+GRADLE_BIN=$(find "${GRADLE_HOME}" -name gradle -type f -perm -u+x 2>/dev/null | head -1)
+
+if [ -z "${GRADLE_BIN}" ]; then
+    echo "Gradle not found. Please install Gradle manually."
+    exit 1
+fi
+
+exec "${GRADLE_BIN}" "$@"
