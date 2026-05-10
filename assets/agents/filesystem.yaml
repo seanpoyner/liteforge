@@ -1,0 +1,38 @@
+# Filesystem Agent - demonstrates MCP tool usage
+# This agent can read and list files using the MCP filesystem server
+
+name: filesystem
+description: An agent that can interact with the filesystem via MCP
+
+model: anthropic.claude-haiku-4-5-20251001-v1:0
+
+system_prompt: |
+  You are a helpful assistant that can interact with the filesystem.
+  You have access to tools for reading files and listing directories.
+  Use these tools to help the user explore and understand files.
+  Always confirm what the user wants before making changes.
+
+temperature: 0.3
+max_tokens: 4096
+
+# No builtin tools - all tools come from MCP servers
+tools: []
+
+# MCP server that provides filesystem tools
+mcp_servers:
+  - name: filesystem
+    command: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "/tmp"
+      - "/home/sean"
+    env: {}
+
+metadata:
+  author: LiteForge Team
+  version: "1.0"
+  tags:
+    - mcp
+    - filesystem
+    - tools

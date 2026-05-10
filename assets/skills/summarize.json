@@ -1,0 +1,25 @@
+{
+  "name": "summarize",
+  "description": "Summarize text content while preserving key points and main ideas",
+  "version": "1.0",
+  "system_prompt": "You are a skilled summarizer. Create concise summaries that capture the essential information from the provided text. Focus on key points, main arguments, and important details. Keep the summary clear and well-organized.",
+  "temperature": 0.3,
+  "max_tokens": 1024,
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "text": {
+        "type": "string",
+        "description": "The text to summarize"
+      },
+      "max_length": {
+        "type": "string",
+        "enum": ["brief", "moderate", "detailed"],
+        "description": "Desired summary length",
+        "default": "moderate"
+      }
+    },
+    "required": ["text"]
+  },
+  "tags": ["text", "summary", "nlp"]
+}

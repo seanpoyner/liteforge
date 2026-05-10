@@ -1,0 +1,97 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = 'com.liteforge'
+version = '0.1.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+    withSourcesJar()
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+    }
+    test {
+        java {
+            srcDirs = ['src/test/java']
+        }
+    }
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+
+    systemProperty 'java.library.path', file("${projectDir}/../../../target/release").absolutePath
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+}
+
+tasks.named('jar') {
+    manifest {
+        attributes(
+            'Implementation-Title': 'LiteForge Java',
+            'Implementation-Version': version,
+            'Automatic-Module-Name': 'com.liteforge'
+        )
+    }
+}
+
+task copyNativeLibs(type: Copy) {
+    from "${projectDir}/../../../target/release"
+    into "${buildDir}/resources/main/native/linux-x64"
+    include "libliteforge_java.so"
+}
+
+processResources.dependsOn copyNativeLibs
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+
+            pom {
+                name = 'LiteForge Java'
+                description = 'Java bindings for the LiteForge'
+                url = 'https://gitea.poyner.ai/sean/liteforge'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'forge-team'
+                        name = 'LiteForge Team'
+                    }
+                }
+            }
+        }
+    }
+}

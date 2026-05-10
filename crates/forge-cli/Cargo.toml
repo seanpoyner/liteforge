@@ -1,0 +1,74 @@
+[package]
+name = "forge-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "CLI for LiteForge - chat completions, model management, and configuration"
+keywords = ["llm", "ai", "cli", "openai"]
+
+[[bin]]
+name = "forge"
+path = "src/main.rs"
+
+[dependencies]
+liteforge = { path = "../liteforge" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+dotenvy = { workspace = true }
+futures = { workspace = true }
+clap = { version = "4", features = ["derive", "env"] }
+colored = "3"
+owo-colors = "4"
+supports-color = "3"
+atty = "0.2"
+
+# Interactive input
+rustyline = "14"
+
+# Tables and formatting
+comfy-table = "7"
+
+# YAML parsing
+serde_yaml = "0.9"
+
+# SQLite for usage tracking
+rusqlite = { version = "0.31", features = ["bundled"] }
+
+# HTTP server for proxy/serve
+axum = "0.7"
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+hyper = { version = "1", features = ["full"] }
+hyper-util = { version = "0.1", features = ["client-legacy", "http1", "http2", "tokio"] }
+
+# Process management
+which = "6"
+
+# Text chunking
+unicode-segmentation = "1.10"
+
+# Regex for guardrails
+regex = "1"
+
+# UUID for session tracking
+uuid = { version = "1", features = ["v4"] }
+
+# Chrono for timestamps
+chrono = { version = "0.4", features = ["serde"] }
+
+# Directories for data storage
+dirs = "5"
+
+# TOML for config files
+toml = "0.8"
+
+# HTTP client for builtin tools
+reqwest = { workspace = true }
+
+# Secure credential storage (macOS Keychain, Windows Credential Manager, Linux Secret Service)
+keyring = "3"
+
+[dev-dependencies]
+tempfile = "3"
