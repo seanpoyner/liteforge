@@ -1,0 +1,8 @@
+[http]
+check-revoke = false
+# Note: Don't set cainfo here - it breaks cross-platform builds
+# On Windows, cargo uses Windows cert store; on Linux, it uses system certs
+# Set CARGO_HTTP_CAINFO env var if you need a custom CA bundle
+
+[net]
+git-fetch-with-cli = true

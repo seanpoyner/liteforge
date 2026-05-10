@@ -1,0 +1,63 @@
+[workspace]
+resolver = "2"
+members = ["crates/liteforge", "crates/liteforge-py", "crates/liteforge-js", "crates/liteforge-java", "crates/forge-cli"]
+
+[workspace.package]
+version = "0.2.0"
+edition = "2021"
+license = "MIT"
+authors = ["LiteForge Team"]
+repository = "https://gitea.poyner.ai/sean/liteforge"
+
+[workspace.dependencies]
+# HTTP & async
+# Use rustls with aws-lc-rs + native-roots so corporate CAs (e.g. internal
+# sub-CAs) are trusted. webpki-roots only ships Mozilla's public bundle and rejects them.
+reqwest = { version = "0.12", features = ["json", "stream", "rustls-tls-native-roots"], default-features = false }
+tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
+futures = "0.3"
+async-stream = "0.3"
+async-trait = "0.1"
+
+# TLS crypto provider - aws-lc-rs cross-compiles better than ring
+# (ring has assembly that hangs with Zig, and needs Security.framework on macOS)
+rustls = { version = "0.23", default-features = false, features = ["std", "tls12", "aws_lc_rs"] }
+hyper-rustls = { version = "0.27", default-features = false, features = ["aws-lc-rs", "http1", "http2", "webpki-tokio", "tls12"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["aws_lc_rs", "tls12"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Bytes
+bytes = "1"
+
+# Error handling
+thiserror = "2"
+
+# Environment
+dotenvy = "0.15"
+
+# Logging
+tracing = "0.1"
+
+# OpenTelemetry (optional, gated by `otel` feature on consuming crates).
+# Versions chosen to match: opentelemetry 0.24 ↔ tracing-opentelemetry 0.25
+# ↔ opentelemetry-otlp 0.17 ↔ reqwest-tracing 0.5 (opentelemetry_0_24 feature).
+opentelemetry = { version = "0.24" }
+opentelemetry_sdk = { version = "0.24", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.17", features = ["http-proto", "reqwest-client"] }
+opentelemetry-http = { version = "0.13" }
+tracing-opentelemetry = { version = "0.25" }
+reqwest-middleware = { version = "0.3" }
+reqwest-tracing = { version = "0.5", features = ["opentelemetry_0_24"] }
+
+# Python bindings
+pyo3 = { version = "0.21", features = ["extension-module", "generate-import-lib"] }
+pyo3-asyncio-0-21 = { version = "0.21", features = ["tokio-runtime"] }
+
+# JavaScript/TypeScript bindings
+napi = { version = "2", features = ["async", "tokio_rt", "serde-json", "napi9"] }
+napi-derive = "2"
+napi-build = "2"

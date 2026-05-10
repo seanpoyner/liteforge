@@ -1,0 +1,165 @@
+{
+  "version": "1.0.0",
+  "last_update": "2026-04-16T00:00:00Z",
+  "last_commit": "5a554e3882fac136f4fa84ff4aaf29eee55dc913",
+  "doc_system": "mkdocs",
+  "doc_theme": "material",
+  "files": {
+    "docs/index.md": {
+      "sources": ["README.md", "Cargo.toml"],
+      "hash": "updated-2026-04-12-install-quicklinks-adk-serve"
+    },
+    "docs/getting-started.md": {
+      "sources": ["README.md", "Cargo.toml", "crates/liteforge-py/Cargo.toml", "crates/liteforge-js/package.json"],
+      "hash": "updated-2026-04-12-quick-install-homebrew"
+    },
+    "docs/quickstart.md": {
+      "sources": ["README.md", "examples/basic_completion.rs", "examples/streaming.rs", "examples/javascript/basic_completion.mjs", "examples/javascript/streaming.mjs"],
+      "hash": "updated-2026-04-11-js-ts-examples"
+    },
+    "docs/installation.md": {
+      "sources": ["scripts/install.sh", "scripts/install.ps1", "homebrew-tap-template/Formula/forge-cli.rb"],
+      "hash": "updated-2026-04-16-direct-creds-proxy-ca-vs-buildtools"
+    },
+    "docs/configuration.md": {
+      "sources": ["crates/liteforge/src/config.rs", "crates/liteforge-js/src/client.rs", "Cargo.toml"],
+      "hash": "updated-2026-04-16-rustls-aws-lc-rs-tls"
+    },
+    "docs/cli.md": {
+      "sources": ["crates/forge-cli/src/main.rs", "crates/forge-cli/src/commands/mod.rs", "crates/forge-cli/src/commands/adk.rs", "crates/forge-cli/src/commands/serve.rs", "crates/forge-cli/src/commands/models.rs", "crates/forge-cli/src/commands/config.rs", "crates/forge-cli/src/commands/claude.rs", "crates/forge-cli/src/commands/claude_proxy.rs", "crates/forge-cli/src/serve/config.rs"],
+      "hash": "updated-2026-04-16-claude-proxy-passthrough-model-overrides"
+    },
+    "docs/guides/streaming.md": {
+      "sources": ["crates/liteforge/src/streaming.rs", "crates/liteforge/src/client.rs", "examples/streaming.rs", "examples/javascript/streaming.mjs"],
+      "hash": "updated-2026-04-11-js-ts-streaming"
+    },
+    "docs/guides/tools.md": {
+      "sources": ["crates/liteforge/src/tools/mod.rs", "crates/liteforge/src/tools/registry.rs", "crates/liteforge/src/tools/executor.rs", "crates/liteforge/src/tools/schema.rs", "crates/liteforge-js/src/tools.rs"],
+      "hash": "updated-2026-04-11-js-ts-tools"
+    },
+    "docs/guides/rag.md": {
+      "sources": ["crates/liteforge/src/rag/pipeline.rs", "crates/liteforge/src/rag/index.rs", "crates/liteforge/src/rag/vector.rs", "crates/liteforge/src/chunking.rs", "crates/liteforge-js/src/rag.rs"],
+      "hash": "updated-2026-04-11-js-ts-rag"
+    },
+    "docs/guides/agents.md": {
+      "sources": ["crates/liteforge/src/agents/mod.rs", "crates/liteforge/src/hitl/mod.rs", "crates/liteforge-js/src/agents.rs"],
+      "hash": "updated-2026-04-11-js-ts-agents"
+    },
+    "docs/guides/guardrails.md": {
+      "sources": ["crates/liteforge/src/guardrails/mod.rs", "crates/liteforge/src/guardrails/pii.rs", "crates/liteforge/src/guardrails/injection.rs", "crates/liteforge-js/src/guardrails.rs"],
+      "hash": "updated-2026-04-11-js-ts-guardrails"
+    },
+    "docs/guides/observability.md": {
+      "sources": ["crates/liteforge/src/observability/mod.rs", "crates/liteforge-js/src/observability.rs"],
+      "hash": "updated-2026-04-11-js-ts-observability"
+    },
+    "docs/guides/mcp.md": {
+      "sources": ["crates/liteforge/src/mcp/config.rs", "crates/liteforge/src/mcp/servers.rs", "crates/liteforge/src/mcp/tools.rs", "crates/liteforge-js/src/mcp.rs"],
+      "hash": "updated-2026-04-11-js-ts-mcp"
+    },
+    "docs/api/client.md": {
+      "sources": ["crates/liteforge/src/client.rs"],
+      "hash": "initial"
+    },
+    "docs/api/types.md": {
+      "sources": ["crates/liteforge/src/types/chat.rs", "crates/liteforge/src/types/models.rs", "crates/liteforge/src/types/tools.rs", "crates/liteforge/src/types/embeddings.rs"],
+      "hash": "initial"
+    },
+    "docs/api/errors.md": {
+      "sources": ["crates/liteforge/src/error.rs"],
+      "hash": "initial"
+    },
+    "docs/api/streaming.md": {
+      "sources": ["crates/liteforge/src/streaming.rs"],
+      "hash": "initial"
+    },
+    "docs/api/tools.md": {
+      "sources": ["crates/liteforge/src/tools/mod.rs", "crates/liteforge/src/tools/registry.rs", "crates/liteforge/src/tools/executor.rs", "crates/liteforge/src/tools/schema.rs"],
+      "hash": "initial"
+    },
+    "docs/api/knowledge.md": {
+      "sources": ["crates/liteforge/src/knowledge/mod.rs"],
+      "hash": "initial"
+    },
+    "docs/api/rag.md": {
+      "sources": ["crates/liteforge/src/rag/pipeline.rs", "crates/liteforge/src/rag/index.rs", "crates/liteforge/src/rag/vector.rs", "crates/liteforge/src/chunking.rs"],
+      "hash": "initial"
+    },
+    "docs/api/agents.md": {
+      "sources": ["crates/liteforge/src/agents/mod.rs"],
+      "hash": "initial"
+    },
+    "docs/api/orchestration.md": {
+      "sources": ["crates/liteforge/src/orchestration/mod.rs"],
+      "hash": "initial"
+    },
+    "docs/api/events.md": {
+      "sources": ["crates/liteforge/src/events/mod.rs", "crates/liteforge/src/hooks/mod.rs"],
+      "hash": "initial"
+    },
+    "docs/api/guardrails.md": {
+      "sources": ["crates/liteforge/src/guardrails/mod.rs", "crates/liteforge/src/guardrails/pii.rs", "crates/liteforge/src/guardrails/injection.rs"],
+      "hash": "initial"
+    },
+    "docs/api/observability.md": {
+      "sources": ["crates/liteforge/src/observability/mod.rs"],
+      "hash": "initial"
+    },
+    "docs/api/retry.md": {
+      "sources": ["crates/liteforge/src/retry.rs"],
+      "hash": "initial"
+    },
+    "docs/api/scheduler.md": {
+      "sources": ["crates/liteforge/src/scheduler/mod.rs"],
+      "hash": "initial"
+    },
+    "docs/api/evals.md": {
+      "sources": ["crates/liteforge/src/evals/mod.rs"],
+      "hash": "initial"
+    },
+    "docs/api/mcp.md": {
+      "sources": ["crates/liteforge/src/mcp/config.rs", "crates/liteforge/src/mcp/servers.rs", "crates/liteforge/src/mcp/tools.rs", "crates/liteforge/src/mcp/types.rs"],
+      "hash": "initial"
+    },
+    "docs/api/skills.md": {
+      "sources": ["crates/liteforge/src/skills/mod.rs", "crates/liteforge/src/skills/loader.rs", "crates/liteforge/src/skills/composer.rs"],
+      "hash": "new-2026-04-11"
+    },
+    "docs/api/prompts.md": {
+      "sources": ["crates/liteforge/src/prompts/mod.rs", "crates/liteforge/src/prompts/template.rs"],
+      "hash": "new-2026-04-11"
+    },
+    "docs/api/pipelines.md": {
+      "sources": ["crates/liteforge/src/pipelines/mod.rs", "crates/liteforge/src/pipelines/transform.rs"],
+      "hash": "new-2026-04-11"
+    },
+    "docs/api/automation.md": {
+      "sources": ["crates/liteforge/src/automation.rs"],
+      "hash": "new-2026-04-11"
+    },
+    "docs/api/images.md": {
+      "sources": ["crates/liteforge/src/images.rs"],
+      "hash": "new-2026-04-11"
+    },
+    "docs/api/conversation.md": {
+      "sources": ["crates/liteforge/src/conversation/mod.rs", "crates/liteforge/src/conversation/managed.rs", "crates/liteforge/src/conversation/compacting.rs", "crates/liteforge/src/conversation/config.rs"],
+      "hash": "new-2026-04-11"
+    },
+    "docs/api/hitl.md": {
+      "sources": ["crates/liteforge/src/hitl/mod.rs", "crates/liteforge/src/hitl/approval.rs", "crates/liteforge/src/hitl/handlers.rs"],
+      "hash": "new-2026-04-11"
+    },
+    "docs/api/triggers.md": {
+      "sources": ["crates/liteforge/src/triggers/mod.rs", "crates/liteforge/src/triggers/filewatch.rs", "crates/liteforge/src/triggers/webhook.rs", "crates/liteforge/src/triggers/queue.rs", "crates/liteforge/src/triggers/schedule.rs", "crates/liteforge/src/triggers/manager.rs"],
+      "hash": "new-2026-04-11"
+    },
+    "docs/python/index.md": {
+      "sources": ["crates/liteforge-py/src/lib.rs"],
+      "hash": "initial"
+    },
+    "docs/javascript/index.md": {
+      "sources": ["crates/liteforge-js/src/lib.rs"],
+      "hash": "initial"
+    }
+  }
+}
