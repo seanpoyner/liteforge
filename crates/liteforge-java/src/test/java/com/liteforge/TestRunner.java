@@ -284,7 +284,7 @@ public class TestRunner {
             System.out.print("Test 12e: Knowledge upload+search... ");
             try (ForgeClient client = new ForgeClient();
                  LocalKnowledgeBackend kb = new LocalKnowledgeBackend(client)) {
-                int uploaded = kb.upload(java.util.List.of(
+                int uploaded = kb.upload(java.util.Arrays.asList(
                     new Document("1", "Rust is a systems programming language"),
                     new Document("2", "Python is great for data science"),
                     new Document("3", "Java runs on the JVM")
@@ -333,7 +333,7 @@ public class TestRunner {
             System.out.print("Test 12g: Knowledge namespace filter... ");
             try (ForgeClient client = new ForgeClient();
                  LocalKnowledgeBackend kb = new LocalKnowledgeBackend(client)) {
-                kb.upload(java.util.List.of(
+                kb.upload(java.util.Arrays.asList(
                     new Document("a1", "apple banana").withNamespace("fruits"),
                     new Document("a2", "car bus plane").withNamespace("vehicles")
                 ));
