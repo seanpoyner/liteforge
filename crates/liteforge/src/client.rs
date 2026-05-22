@@ -139,10 +139,33 @@ impl AsyncForgeClient {
 
     /// Create a new async client with the given configuration.
     pub fn with_config(config: ForgeConfig) -> Self {
-        let http = reqwest::Client::builder()
-            .timeout(config.timeout)
-            .build()
-            .expect("Failed to build HTTP client");
+        let mut builder = reqwest::Client::builder().timeout(config.timeout);
+        if let Ok(path) = std::env::var("LITEFORGE_EXTRA_CA_FILE") {
+            match std::fs::read(&path) {
+                Ok(pem) => match reqwest::Certificate::from_pem_bundle(&pem) {
+                    Ok(certs) => {
+                        for c in certs {
+                            builder = builder.add_root_certificate(c);
+                        }
+                    }
+                    Err(e) => {
+                        tracing::warn!(
+                            "LITEFORGE_EXTRA_CA_FILE={} could not be parsed as a PEM bundle: {}",
+                            path,
+                            e
+                        );
+                    }
+                },
+                Err(e) => {
+                    tracing::warn!(
+                        "LITEFORGE_EXTRA_CA_FILE={} could not be read: {}",
+                        path,
+                        e
+                    );
+                }
+            }
+        }
+        let http = builder.build().expect("Failed to build HTTP client");
 
         Self { config, http }
     }

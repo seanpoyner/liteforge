@@ -42,12 +42,21 @@ dependencies {
 test {
     useJUnitPlatform()
 
-    systemProperty 'java.library.path', file("${projectDir}/../../../target/release").absolutePath
+    systemProperty 'java.library.path', file("${projectDir}/../../target/release").absolutePath
 
     testLogging {
         events "passed", "skipped", "failed"
         showStandardStreams = true
     }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Javadoc).configureEach {
+    options.encoding = 'UTF-8'
+    options.charSet = 'UTF-8'
 }
 
 tasks.named('jar') {
@@ -61,7 +70,7 @@ tasks.named('jar') {
 }
 
 task copyNativeLibs(type: Copy) {
-    from "${projectDir}/../../../target/release"
+    from "${projectDir}/../../target/release"
     into "${buildDir}/resources/main/native/linux-x64"
     include "libliteforge_java.so"
 }
