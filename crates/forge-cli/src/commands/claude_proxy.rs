@@ -58,12 +58,18 @@ async fn proxy(State(state): State<ProxyState>, req: Request) -> Response {
         Err(e) => return err_response(400, format!("read body: {}", e)),
     };
 
-    // Strip `context_management` if the body is JSON. If parsing fails, pass
+    // Strip unsupported fields if the body is JSON. If parsing fails, pass
     // through unchanged — e.g. empty bodies on GET.
     let forwarded_body: Vec<u8> = match serde_json::from_slice::<serde_json::Value>(&bytes) {
         Ok(mut json) => {
             if let Some(obj) = json.as_object_mut() {
                 obj.remove("context_management");
+                if let Some(model) = obj.get("model").and_then(|m| m.as_str()) {
+                    let provider = liteforge::model_enrichment::detect_provider(model);
+                    if provider != "anthropic" {
+                        obj.remove("output_config");
+                    }
+                }
             }
             serde_json::to_vec(&json).unwrap_or_else(|_| bytes.to_vec())
         }

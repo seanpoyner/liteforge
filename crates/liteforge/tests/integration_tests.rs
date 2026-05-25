@@ -62,7 +62,7 @@ mod integration_tests {
         let client = AsyncForgeClient::new();
         let response = client
             .complete_with_model(
-                "anthropic.claude-haiku-4-5-20251001-v1:0",
+                "claude-haiku-4.5",
                 vec![Message::user("What is 2+2?")],
             )
             .await;
@@ -80,7 +80,7 @@ mod integration_tests {
         init();
         let client = ForgeClient::new();
         let response = client.complete_with_model(
-            "anthropic.claude-haiku-4-5-20251001-v1:0",
+            "claude-haiku-4.5",
             vec![Message::user("What is 2+2?")],
         );
         if let Err(e) = &response {

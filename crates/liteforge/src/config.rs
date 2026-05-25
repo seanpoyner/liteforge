@@ -9,7 +9,7 @@ pub const DEFAULT_BASE_URL: &str =
     "https://api.example.com/v1";
 
 /// Default model to use.
-pub const DEFAULT_MODEL: &str = "anthropic.claude-haiku-4-5-20251001-v1:0";
+pub const DEFAULT_MODEL: &str = "claude-haiku-4.5";
 
 /// Default request timeout in seconds.
 pub const DEFAULT_TIMEOUT_SECS: u64 = 60;
@@ -117,6 +117,8 @@ impl ForgeConfig {
             .ok()
             .filter(|s| !s.is_empty())
             .or_else(|| env::var("OPENAI_API_KEY").ok().filter(|s| !s.is_empty()))
+            .or_else(|| env::var("ANTHROPIC_API_KEY").ok().filter(|s| !s.is_empty()))
+            .or_else(|| env::var("TIP_API_KEY").ok().filter(|s| !s.is_empty()))
             .or(file_config.api_key);
 
         let default_model = env::var("LITEFORGE_DEFAULT_MODEL")
@@ -128,6 +130,9 @@ impl ForgeConfig {
         let base_url = env::var("LITEFORGE_BASE_URL")
             .ok()
             .filter(|s| !s.is_empty())
+            .or_else(|| env::var("ANTHROPIC_BASE_URL").ok().filter(|s| !s.is_empty()))
+            .or_else(|| env::var("OPENAI_BASE_URL").ok().filter(|s| !s.is_empty()))
+            .or_else(|| env::var("TIP_BASE_URL").ok().filter(|s| !s.is_empty()))
             .or(file_config.base_url)
             .unwrap_or_else(|| DEFAULT_BASE_URL.to_string());
 

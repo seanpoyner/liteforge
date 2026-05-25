@@ -431,7 +431,7 @@ forge serve --config ./serve.toml  # Custom config
 | `LITEFORGE_API_KEY` | API key for authentication | Required |
 | `OPENAI_API_KEY` | Fallback API key | - |
 | `LITEFORGE_BASE_URL` | LiteLLM endpoint URL | LiteForge production endpoint |
-| `LITEFORGE_DEFAULT_MODEL` | Default model for completions | `anthropic.claude-haiku-4-5-20251001-v1:0` |
+| `LITEFORGE_DEFAULT_MODEL` | Default model for completions | `claude-haiku-4.5` |
 | `LITEFORGE_TIMEOUT` | Request timeout in seconds | `60` |
 | `LITEFORGE_KNOWLEDGE_URL` | Knowledge service endpoint | Optional |
 | `LITEFORGE_TEMPORAL_URL` | Temporal endpoint | Optional |
