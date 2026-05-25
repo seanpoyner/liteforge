@@ -69,7 +69,7 @@ version: "1.0"
 description: "Agent ecosystem created with forge adk"
 
 defaults:
-  model: anthropic.claude-haiku-4-5-20251001-v1:0
+  model: claude-haiku-4.5
   temperature: 0.7
   max_tokens: 4096
 
@@ -207,7 +207,7 @@ LITEFORGE_API_KEY=your-api-key-here
 LITEFORGE_BASE_URL=https://api.example.com/v1
 
 # Optional: Override default model
-# LITEFORGE_DEFAULT_MODEL=anthropic.claude-haiku-4-5-20251001-v1:0
+# LITEFORGE_DEFAULT_MODEL=claude-haiku-4.5
 "#
     .to_string()
 }
