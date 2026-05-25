@@ -5,7 +5,7 @@ name: example
 description: A simple example agent with web search - demonstrates builtin tools
 
 # Model to use (overrides LITEFORGE_DEFAULT_MODEL)
-model: anthropic.claude-haiku-4-5-20251001-v1:0
+model: claude-haiku-4.5
 
 # System prompt that defines the agent's behavior
 system_prompt: |
