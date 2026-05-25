@@ -96,6 +96,7 @@ pub mod hooks;
 pub mod images;
 pub mod knowledge;
 pub mod mcp;
+pub mod model_enrichment;
 pub mod observability;
 pub mod orchestration;
 pub mod otel_init;

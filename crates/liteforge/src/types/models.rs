@@ -2,6 +2,29 @@
 
 use serde::{Deserialize, Serialize};
 
+/// Capabilities of a model.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ModelCapabilities {
+    /// Whether the model supports tool calls.
+    pub supports_tools: bool,
+    /// Whether the model supports vision (image inputs).
+    pub supports_vision: bool,
+    /// Whether the model supports streaming responses.
+    pub supports_streaming: bool,
+    /// Whether the model supports JSON output mode.
+    pub supports_json_mode: bool,
+    /// Whether the model supports thinking/reasoning mode.
+    pub supports_thinking: bool,
+    /// Whether the model supports output configuration.
+    pub supports_output_config: bool,
+    /// Maximum context window size in tokens.
+    pub context_window: Option<u32>,
+    /// Maximum number of tokens that can be generated.
+    pub max_output_tokens: Option<u32>,
+    /// Style of thinking/reasoning the model uses.
+    pub thinking_style: Option<String>,
+}
+
 /// A model available for completions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Model {

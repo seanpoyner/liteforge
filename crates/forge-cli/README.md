@@ -189,8 +189,8 @@ Default model mapping (override via environment variables):
 
 | Variable | Default |
 |---|---|
-| `ANTHROPIC_MODEL` | `anthropic.claude-opus-4-5-20251101-v1:0` |
-| `ANTHROPIC_SMALL_FAST_MODEL` | `anthropic.claude-haiku-4-5-20251001-v1:0` |
+| `ANTHROPIC_MODEL` | `claude-opus-4.7` |
+| `ANTHROPIC_SMALL_FAST_MODEL` | `claude-haiku-4.5` |
 
 ### Usage Tracking
 
@@ -209,7 +209,7 @@ forge usage --sessions        # list sessions
 |----------|-------------|---------|
 | `LITEFORGE_API_KEY` | API key for authentication | Required |
 | `LITEFORGE_BASE_URL` | LiteLLM endpoint URL | LiteForge production endpoint |
-| `LITEFORGE_DEFAULT_MODEL` | Default model | `anthropic.claude-haiku-4-5-20251001-v1:0` |
+| `LITEFORGE_DEFAULT_MODEL` | Default model | `claude-haiku-4.5` |
 | `LITEFORGE_TIMEOUT` | Request timeout in seconds | `60` |
 
 ### Config File
@@ -223,7 +223,7 @@ api_key = "your-api-key"
 base_url = "https://api.example.com/v1"
 
 [defaults]
-model = "anthropic.claude-haiku-4-5-20251001-v1:0"
+model = "claude-haiku-4.5"
 timeout = 60
 
 [paths]
