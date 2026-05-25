@@ -6,6 +6,8 @@ use serde::Deserialize;
 use std::sync::Arc;
 
 use super::state::AppState;
+use crate::agents::config::AgentConfig;
+use crate::agents::execution::{build_tool_definitions, execute_tool, parse_text_leaked_tool_call};
 
 pub fn router(state: Arc<AppState>) -> Router {
     Router::new()
@@ -89,6 +91,10 @@ async fn a2a_handler(
     }
 }
 
+/// Maximum tool-call iterations before we stop and return whatever content
+/// the model produced. Matches the implicit limit in the REPL loop.
+const MAX_TOOL_TURNS: usize = 8;
+
 async fn handle_task_send(
     state: &AppState,
     params: serde_json::Value,
@@ -108,28 +114,133 @@ async fn handle_task_send(
         .and_then(|t| t.as_str())
         .unwrap_or("");
 
-    let messages = vec![liteforge::Message::user(message_text)];
-    let model = state.client.model().to_string();
-    let sdk_req = liteforge::ChatCompletionRequest::new(model, messages);
+    // Optional: callers can target a specific agent via params.agent or
+    // params.skill_id. Default = first loaded agent (matches what
+    // `.well-known/agent.json` advertises as the primary skill).
+    let agent_name = params
+        .get("agent")
+        .or_else(|| params.get("skill_id"))
+        .and_then(|v| v.as_str());
 
-    match state.client.chat_completions(sdk_req).await {
-        Ok(completion) => {
-            let content = completion.content().unwrap_or("").to_string();
-            Ok(serde_json::json!({
-                "id": task_id,
-                "status": { "state": "completed" },
-                "artifacts": [{
-                    "parts": [{ "type": "text", "text": content }],
-                }],
-            }))
+    let agent = pick_agent(state, agent_name).await.ok_or_else(|| {
+        serde_json::json!({
+            "code": -32602,
+            "message": "no agent available on this server",
+        })
+    })?;
+
+    // Build tools from the agent's `tools:` block + every MCP server
+    // currently registered on the shared mcp_manager (populated by
+    // adk/dev.rs::spawn_agent_mcp_servers at server startup).
+    let mcp_mgr = state.mcp_manager.read().await;
+    let tool_defs = build_tool_definitions(&agent.tools, &mcp_mgr).await;
+
+    let model = agent
+        .model
+        .clone()
+        .unwrap_or_else(|| state.client.model().to_string());
+
+    // Seed message history with the agent's system prompt + the caller's task.
+    let mut messages: Vec<liteforge::Message> = Vec::new();
+    if let Some(sp) = &agent.system_prompt {
+        messages.push(liteforge::Message::system(sp));
+    }
+    messages.push(liteforge::Message::user(message_text));
+
+    // Tool-call loop. Mirror the REPL's structure: non-streaming chat,
+    // execute any returned tool_calls via execute_tool, feed results back
+    // as `tool` role messages, repeat until the model returns no tool_calls
+    // (or MAX_TOOL_TURNS is hit).
+    let mut final_content = String::new();
+    for _turn in 0..MAX_TOOL_TURNS {
+        let mut req = liteforge::ChatCompletionRequest::new(&model, messages.clone());
+        if !tool_defs.is_empty() {
+            req = req.tools(tool_defs.clone());
         }
-        Err(e) => Ok(serde_json::json!({
-            "id": task_id,
-            "status": {
-                "state": "failed",
-                "message": e.to_string(),
-            },
-        })),
+        if let Some(temp) = agent.temperature {
+            req = req.temperature(temp);
+        }
+        if let Some(mt) = agent.max_tokens {
+            req = req.max_tokens(mt);
+        }
+
+        let completion = match state.client.chat_completions(req).await {
+            Ok(c) => c,
+            Err(e) => {
+                return Ok(serde_json::json!({
+                    "id": task_id,
+                    "status": {
+                        "state": "failed",
+                        "message": format!("chat_completions failed: {}", e),
+                    },
+                }));
+            }
+        };
+
+        let Some(choice) = completion.choices.into_iter().next() else {
+            break;
+        };
+        let msg = choice.message;
+        let mut content = msg.content.clone().unwrap_or_default();
+        let mut tool_calls = msg.tool_calls.clone().unwrap_or_default();
+
+        // Same text-leak recovery as the REPL: some models emit tool
+        // calls as JSON content instead of structured tool_calls.
+        if tool_calls.is_empty() && !content.is_empty() {
+            if let Some(parsed) = parse_text_leaked_tool_call(&content) {
+                tool_calls.push(parsed);
+                content.clear();
+            }
+        }
+
+        if tool_calls.is_empty() {
+            final_content = content;
+            break;
+        }
+
+        // Otherwise: record the assistant turn with its tool_calls,
+        // execute each call, append the tool results, loop.
+        messages.push(liteforge::Message {
+            role: "assistant".to_string(),
+            content: if content.is_empty() { None } else { Some(content) },
+            name: None,
+            tool_calls: Some(tool_calls.clone()),
+            tool_call_id: None,
+        });
+
+        for call in &tool_calls {
+            let result = execute_tool(&agent.tools, &mcp_mgr, call).await;
+            let tool_content = match result {
+                Ok(v) => {
+                    if v.is_string() {
+                        v.as_str().unwrap_or("").to_string()
+                    } else {
+                        serde_json::to_string(&v).unwrap_or_else(|_| v.to_string())
+                    }
+                }
+                Err(e) => format!("Error: {}", e),
+            };
+            messages.push(liteforge::Message::tool(&call.id, tool_content));
+        }
+    }
+
+    Ok(serde_json::json!({
+        "id": task_id,
+        "status": { "state": "completed" },
+        "artifacts": [{
+            "parts": [{ "type": "text", "text": final_content }],
+        }],
+    }))
+}
+
+/// Pick an agent by name; if name is None, fall back to the first agent
+/// in the loaded list (matches how the agent card advertises skills).
+async fn pick_agent(state: &AppState, name: Option<&str>) -> Option<AgentConfig> {
+    let agents = state.agents.read().await;
+    if let Some(n) = name {
+        agents.iter().find(|a| a.name == n).cloned()
+    } else {
+        agents.first().cloned()
     }
 }
 
