@@ -30,7 +30,10 @@ pub async fn execute(project_dir: &Path) -> Result<(), CliError> {
 }
 
 pub fn adk_to_serve_config(config: &super::config::AdkConfig) -> ServeConfig {
-    let host = "127.0.0.1".to_string();
+    // FORGE_HOST overrides the default loopback bind so the multi-port
+    // server can be reached from outside its container (e.g. K3s pods
+    // need 0.0.0.0). Falls back to 127.0.0.1 for local dev safety.
+    let host = std::env::var("FORGE_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
     ServeConfig {
         user: RoleConfig {
             host: host.clone(),
