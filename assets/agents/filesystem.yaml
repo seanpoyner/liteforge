@@ -4,7 +4,7 @@
 name: filesystem
 description: An agent that can interact with the filesystem via MCP
 
-model: anthropic.claude-haiku-4-5-20251001-v1:0
+model: claude-haiku-4.5
 
 system_prompt: |
   You are a helpful assistant that can interact with the filesystem.
