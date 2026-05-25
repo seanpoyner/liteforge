@@ -382,54 +382,88 @@ async fn run_agent(
                         request = request.max_tokens(max);
                     }
 
-                    // Stream response
-                    let mut stream = client.chat_completions_stream(request).await?;
+                    // Ollama `:cloud` models on litellm.poyner.ai emit
+                    // tool_calls as plain-text content under streaming.
+                    // For those, fall back to non-streaming so tool_calls
+                    // come through as structured data.
+                    // Ollama cloud models: name ends in either `:cloud`
+                    // (e.g. `qwen3.5:cloud`) or `-cloud` (e.g.
+                    // `gemma4:31b-cloud`, `gpt-oss:120b-cloud`).
+                    let is_ollama_cloud =
+                        model.ends_with(":cloud") || model.ends_with("-cloud");
+                    let use_streaming = !is_ollama_cloud;
+
                     let mut response_content = String::new();
                     let mut tool_calls: Vec<ToolCall> = Vec::new();
 
                     print!("\n{} ", theme::success("●"));
                     std::io::stdout().flush()?;
 
-                    while let Some(chunk) = stream.next().await {
-                        let chunk = chunk?;
+                    if use_streaming {
+                        let mut stream = client.chat_completions_stream(request).await?;
+                        while let Some(chunk) = stream.next().await {
+                            let chunk = chunk?;
 
-                        // Print content as it streams
-                        if let Some(content) = chunk.content() {
-                            print!("{}", content);
-                            std::io::stdout().flush()?;
-                            response_content.push_str(content);
-                        }
+                            if let Some(content) = chunk.content() {
+                                print!("{}", content);
+                                std::io::stdout().flush()?;
+                                response_content.push_str(content);
+                            }
 
-                        // Accumulate tool calls from delta
-                        if let Some(choice) = chunk.choices.first() {
-                            if let Some(delta_calls) = &choice.delta.tool_calls {
-                                for delta_call in delta_calls {
-                                    // Find or create tool call entry using index
-                                    let idx = delta_call.index.unwrap_or(0) as usize;
-                                    while tool_calls.len() <= idx {
-                                        tool_calls.push(ToolCall::new("", "", ""));
-                                    }
+                            if let Some(choice) = chunk.choices.first() {
+                                if let Some(delta_calls) = &choice.delta.tool_calls {
+                                    for delta_call in delta_calls {
+                                        let idx = delta_call.index.unwrap_or(0) as usize;
+                                        while tool_calls.len() <= idx {
+                                            tool_calls.push(ToolCall::new("", "", ""));
+                                        }
 
-                                    // Merge delta into tool call
-                                    if !delta_call.id.is_empty() {
-                                        tool_calls[idx].id = delta_call.id.clone();
+                                        if !delta_call.id.is_empty() {
+                                            tool_calls[idx].id = delta_call.id.clone();
+                                        }
+                                        if !delta_call.function.name.is_empty() {
+                                            tool_calls[idx].function.name =
+                                                delta_call.function.name.clone();
+                                        }
+                                        tool_calls[idx]
+                                            .function
+                                            .arguments
+                                            .push_str(&delta_call.function.arguments);
                                     }
-                                    if !delta_call.function.name.is_empty() {
-                                        tool_calls[idx].function.name =
-                                            delta_call.function.name.clone();
-                                    }
-                                    tool_calls[idx]
-                                        .function
-                                        .arguments
-                                        .push_str(&delta_call.function.arguments);
                                 }
+                            }
+                        }
+                    } else {
+                        let response = client.chat_completions(request).await?;
+                        if let Some(choice) = response.choices.into_iter().next() {
+                            if let Some(content) = choice.message.content {
+                                print!("{}", content);
+                                std::io::stdout().flush()?;
+                                response_content = content;
+                            }
+                            if let Some(calls) = choice.message.tool_calls {
+                                tool_calls = calls;
                             }
                         }
                     }
                     println!();
 
+                    // Fallback: some models (notably Ollama `:cloud` /
+                    // `-cloud` ones) intermittently emit tool calls as
+                    // a JSON-in-markdown blob in `content` instead of
+                    // structured `tool_calls`. If we got no structured
+                    // calls but the content matches that shape, parse
+                    // it into a synthetic tool_call so the agent loop
+                    // can still execute it.
+                    if tool_calls.is_empty() && !response_content.is_empty() {
+                        if let Some(parsed) = parse_text_leaked_tool_call(&response_content) {
+                            tool_calls.push(parsed);
+                            response_content.clear();
+                        }
+                    }
+
                     // Filter out empty tool calls
-                    tool_calls.retain(|c| !c.id.is_empty() && !c.function.name.is_empty());
+                    tool_calls.retain(|c| !c.function.name.is_empty());
 
                     // Check for tool calls
                     if tool_calls.is_empty() {
@@ -521,6 +555,50 @@ async fn build_tool_definitions(
     }
 
     definitions
+}
+
+/// Try to recover a tool call that a model emitted as JSON-in-content
+/// instead of structured `tool_calls` (a quirk of several Ollama-cloud
+/// reasoning models). Recognised shapes (with or without ```json fences):
+///   {"name": "<tool>", "arguments": { ... }}
+///   {"name": "<tool>", "parameters": { ... }}
+/// Returns None if the content does not look like a tool call.
+fn parse_text_leaked_tool_call(content: &str) -> Option<ToolCall> {
+    let mut text = content.trim();
+    if let Some(stripped) = text.strip_prefix("```json") {
+        text = stripped.trim();
+    } else if let Some(stripped) = text.strip_prefix("```") {
+        text = stripped.trim();
+    }
+    if let Some(stripped) = text.strip_suffix("```") {
+        text = stripped.trim();
+    }
+
+    let v: serde_json::Value = serde_json::from_str(text).ok()?;
+    let obj = v.as_object()?;
+    let name = obj.get("name").and_then(|n| n.as_str())?;
+    let args = obj
+        .get("arguments")
+        .or_else(|| obj.get("parameters"))
+        .cloned()
+        .unwrap_or_else(|| serde_json::json!({}));
+    let args_json = serde_json::to_string(&args).ok()?;
+
+    Some(ToolCall::new(
+        format!("call_leaked_{}", uuid_like()),
+        name,
+        args_json,
+    ))
+}
+
+/// Cheap unique-ish suffix without pulling in the uuid crate.
+fn uuid_like() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    format!("{:x}", nanos)
 }
 
 /// Convert an agent-configured tool to a ToolDefinition for the LLM.
