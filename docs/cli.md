@@ -200,8 +200,8 @@ By default `forge claude` maps Claude Code's model selection to LiteForge-compat
 
 | Environment Variable | Default Value |
 |---|---|
-| `ANTHROPIC_MODEL` | `anthropic.claude-opus-4-5-20251101-v1:0` |
-| `ANTHROPIC_SMALL_FAST_MODEL` | `anthropic.claude-haiku-4-5-20251001-v1:0` |
+| `ANTHROPIC_MODEL` | `claude-opus-4.7` |
+| `ANTHROPIC_SMALL_FAST_MODEL` | `claude-haiku-4.5` |
 
 Export these variables before running `forge claude` to override.
 
