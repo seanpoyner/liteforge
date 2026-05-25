@@ -25,8 +25,47 @@ pub async fn execute(project_dir: &Path) -> Result<(), CliError> {
     let state = AppState::new(serve_config.clone(), api_key, base_url);
 
     load_adk_resources(&config, project_dir, &state).await?;
+    spawn_agent_mcp_servers(&state).await;
 
     serve::start_all(state, &serve_config).await
+}
+
+/// Spawn every MCP server declared in every loaded agent's `mcp_servers`
+/// list and register them on the shared `mcp_manager`. Without this,
+/// the agent_chat (user port) and a2a handlers see an empty mcp_manager
+/// and cannot invoke any MCP-backed tools, even though the agent YAML
+/// declares them.
+async fn spawn_agent_mcp_servers(state: &std::sync::Arc<AppState>) {
+    use liteforge::mcp::{McpServer, McpServerConfig as SdkMcpServerConfig, McpStdioServer};
+
+    let agents = state.agents.read().await;
+    let mut mcp_mgr = state.mcp_manager.write().await;
+
+    for agent in agents.iter() {
+        for sc in &agent.mcp_servers {
+            let sdk_config = SdkMcpServerConfig::stdio(&sc.name, &sc.command)
+                .with_args(sc.args.clone())
+                .with_env(sc.env.clone());
+            let mut server = McpStdioServer::new(sdk_config);
+            print!(
+                "  {} Connecting MCP server '{}' ({})...",
+                theme::dimmed("→"),
+                sc.name,
+                agent.name
+            );
+            use std::io::Write;
+            std::io::stdout().flush().ok();
+            match server.connect().await {
+                Ok(_) => {
+                    println!(" {}", theme::success("ok"));
+                    mcp_mgr.add_server(Box::new(server));
+                }
+                Err(e) => {
+                    println!(" {} {}", theme::error_text("failed"), e);
+                }
+            }
+        }
+    }
 }
 
 pub fn adk_to_serve_config(config: &super::config::AdkConfig) -> ServeConfig {
