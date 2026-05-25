@@ -9,7 +9,7 @@ LiteForge can be configured via environment variables, `.env` files, or programm
 | `LITEFORGE_API_KEY` | API key for authentication | Required |
 | `OPENAI_API_KEY` | Fallback API key (if `LITEFORGE_API_KEY` not set) | -- |
 | `LITEFORGE_BASE_URL` | Custom API endpoint | LiteForge endpoint |
-| `LITEFORGE_DEFAULT_MODEL` | Default model for completions | `anthropic.claude-haiku-4-5-20251001-v1:0` |
+| `LITEFORGE_DEFAULT_MODEL` | Default model for completions | `claude-haiku-4.5` |
 | `LITEFORGE_TIMEOUT` | Request timeout in seconds | `60` |
 
 ## `.env` File
@@ -112,7 +112,7 @@ const client = AsyncForgeClient.withConfig(
 | Setting | Default Value |
 |---------|--------------|
 | Base URL | `https://api.example.com/v1` |
-| Model | `anthropic.claude-haiku-4-5-20251001-v1:0` |
+| Model | `claude-haiku-4.5` |
 | Timeout | 60 seconds |
 
 ## TLS

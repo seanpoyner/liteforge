@@ -210,13 +210,13 @@ fn build_env_vars(base_url: &str, api_key: Option<&str>) -> HashMap<String, Stri
     if std::env::var_os("ANTHROPIC_MODEL").is_none() {
         env.insert(
             "ANTHROPIC_MODEL".to_string(),
-            "anthropic.claude-sonnet-4-5-20250929-v1:0".to_string(),
+            "claude-sonnet-4.6".to_string(),
         );
     }
     if std::env::var_os("ANTHROPIC_SMALL_FAST_MODEL").is_none() {
         env.insert(
             "ANTHROPIC_SMALL_FAST_MODEL".to_string(),
-            "anthropic.claude-haiku-4-5-20251001-v1:0".to_string(),
+            "claude-haiku-4.5".to_string(),
         );
     }
 

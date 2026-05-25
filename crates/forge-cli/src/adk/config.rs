@@ -56,7 +56,7 @@ pub struct DefaultsConfig {
 }
 
 fn default_model() -> String {
-    "anthropic.claude-haiku-4-5-20251001-v1:0".to_string()
+    "claude-haiku-4.5".to_string()
 }
 fn default_temperature() -> f32 {
     0.7
