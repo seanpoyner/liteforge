@@ -5,6 +5,10 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 description = "Rust SDK for LiteForge - LLM completions via OpenAI-compatible API"
+
+[[example]]
+name = "test_models"
+path = "examples/test_models.rs"
 keywords = ["llm", "ai", "openai", "bedrock", "anthropic"]
 categories = ["api-bindings", "asynchronous"]
 
