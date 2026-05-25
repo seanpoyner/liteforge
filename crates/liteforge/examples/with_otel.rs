@@ -70,7 +70,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let request = ChatCompletionRequest::new(
         std::env::var("LITEFORGE_DEFAULT_MODEL")
-            .unwrap_or_else(|_| "anthropic.claude-haiku-4-5-20251001-v1:0".to_string()),
+            .unwrap_or_else(|_| "claude-haiku-4.5".to_string()),
         vec![Message::user("Reply with the single word 'pong'")],
     )
     .max_tokens(8)
