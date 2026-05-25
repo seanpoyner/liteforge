@@ -51,6 +51,8 @@ static PROVIDER_PATTERNS: Lazy<Vec<(Regex, &'static str)>> = Lazy::new(|| {
         // Mistral (direct)
         (Regex::new(r"(?i)^mistral-").unwrap(), "mistral"),
         (Regex::new(r"(?i)^codestral").unwrap(), "mistral"),
+        (Regex::new(r"(?i)^devstral").unwrap(), "mistral"),
+        (Regex::new(r"(?i)^magistral").unwrap(), "mistral"),
         (Regex::new(r"(?i)^pixtral").unwrap(), "mistral"),
         // Meta (direct)
         (Regex::new(r"(?i)^llama-").unwrap(), "meta"),
@@ -58,6 +60,24 @@ static PROVIDER_PATTERNS: Lazy<Vec<(Regex, &'static str)>> = Lazy::new(|| {
         // Cohere (direct)
         (Regex::new(r"(?i)^command-").unwrap(), "cohere"),
         (Regex::new(r"(?i)^embed-").unwrap(), "cohere"),
+        // xAI
+        (Regex::new(r"(?i)^grok").unwrap(), "xai"),
+        // DeepSeek
+        (Regex::new(r"(?i)^deepseek").unwrap(), "deepseek"),
+        // Alibaba (Qwen)
+        (Regex::new(r"(?i)^qwen").unwrap(), "alibaba"),
+        // ZhipuAI (GLM)
+        (Regex::new(r"(?i)^glm-?").unwrap(), "zhipuai"),
+        // Moonshot (Kimi)
+        (Regex::new(r"(?i)^kimi").unwrap(), "moonshot"),
+        // MiniMax
+        (Regex::new(r"(?i)^minimax").unwrap(), "minimax"),
+        // Google Gemma (open-weights)
+        (Regex::new(r"(?i)^gemma").unwrap(), "google"),
+        // NVIDIA
+        (Regex::new(r"(?i)^nemotron").unwrap(), "nvidia"),
+        // DeepCogito
+        (Regex::new(r"(?i)^cogito").unwrap(), "deepcogito"),
     ]
 });
 
@@ -102,6 +122,25 @@ static CAP_OVERRIDES: Lazy<Vec<(Regex, CapApply)>> = Lazy::new(|| {
         (Regex::new(r"(?i)^command-").unwrap(), |c| {
             c.supports_vision = false;
         }),
+        // Grok variants that explicitly advertise reasoning vs non-reasoning.
+        // Order matters: check non-reasoning before reasoning since "non-reasoning" contains "reasoning".
+        (Regex::new(r"(?i)^grok.*non-reasoning").unwrap(), |c| {
+            c.supports_thinking = false;
+            c.thinking_style = None;
+        }),
+        (Regex::new(r"(?i)^grok.*reasoning").unwrap(), |c| {
+            c.supports_thinking = true;
+            c.thinking_style = Some("xai_reasoning".into());
+        }),
+        // Qwen vision-language models
+        (Regex::new(r"(?i)^qwen.*-vl").unwrap(), |c| {
+            c.supports_vision = true;
+        }),
+        // DeepSeek reasoning models (R-series)
+        (Regex::new(r"(?i)^deepseek-r").unwrap(), |c| {
+            c.supports_thinking = true;
+            c.thinking_style = Some("deepseek_reasoning".into());
+        }),
     ]
 });
 
@@ -111,8 +150,10 @@ static CAP_OVERRIDES: Lazy<Vec<(Regex, CapApply)>> = Lazy::new(|| {
 
 /// Detect the provider identifier from a model ID (e.g. `"anthropic"`).
 pub fn detect_provider(model_id: &str) -> &'static str {
+    // Some upstreams (Google Gemini native API) prefix IDs with `models/`.
+    let id = model_id.strip_prefix("models/").unwrap_or(model_id);
     for (re, provider) in PROVIDER_PATTERNS.iter() {
-        if re.is_match(model_id) {
+        if re.is_match(id) {
             return provider;
         }
     }
@@ -129,6 +170,14 @@ pub fn provider_name(provider: &str) -> &'static str {
         "mistral" => "Mistral",
         "cohere" => "Cohere",
         "meta" => "Meta",
+        "xai" => "xAI",
+        "deepseek" => "DeepSeek",
+        "alibaba" => "Alibaba",
+        "zhipuai" => "ZhipuAI",
+        "moonshot" => "Moonshot",
+        "minimax" => "MiniMax",
+        "nvidia" => "NVIDIA",
+        "deepcogito" => "DeepCogito",
         _ => "Other",
     }
 }
@@ -143,19 +192,28 @@ pub fn provider_source(provider: &str) -> &'static str {
         "mistral" => "Bedrock",
         "meta" => "Bedrock",
         "cohere" => "Bedrock",
-        _ => "Bedrock",
+        "xai" => "API",
+        "deepseek" => "API",
+        "alibaba" => "API",
+        "zhipuai" => "API",
+        "moonshot" => "API",
+        "minimax" => "API",
+        "nvidia" => "API",
+        "deepcogito" => "API",
+        _ => "API",
     }
 }
 
 /// Resolve capabilities for a model by layering provider defaults with
 /// per-model overrides (matching the legacy Python SDK logic).
 pub fn get_capabilities(model_id: &str) -> ModelCapabilities {
-    let provider = detect_provider(model_id);
+    let id = model_id.strip_prefix("models/").unwrap_or(model_id);
+    let provider = detect_provider(id);
 
     let mut caps = provider_default_capabilities(provider);
 
     for (re, apply) in CAP_OVERRIDES.iter() {
-        if re.is_match(model_id) {
+        if re.is_match(id) {
             apply(&mut caps);
             break;
         }
@@ -234,6 +292,68 @@ fn provider_default_capabilities(provider: &str) -> ModelCapabilities {
             supports_streaming: true,
             context_window: Some(128_000),
             max_output_tokens: Some(4_096),
+            ..Default::default()
+        },
+        "xai" => ModelCapabilities {
+            supports_tools: true,
+            supports_vision: true,
+            supports_streaming: true,
+            supports_json_mode: true,
+            context_window: Some(131_072),
+            max_output_tokens: Some(8_192),
+            ..Default::default()
+        },
+        "deepseek" => ModelCapabilities {
+            supports_tools: true,
+            supports_streaming: true,
+            supports_json_mode: true,
+            context_window: Some(128_000),
+            max_output_tokens: Some(8_192),
+            ..Default::default()
+        },
+        "alibaba" => ModelCapabilities {
+            supports_tools: true,
+            supports_streaming: true,
+            supports_json_mode: true,
+            context_window: Some(128_000),
+            max_output_tokens: Some(8_192),
+            ..Default::default()
+        },
+        "zhipuai" => ModelCapabilities {
+            supports_tools: true,
+            supports_streaming: true,
+            supports_json_mode: true,
+            context_window: Some(128_000),
+            max_output_tokens: Some(8_192),
+            ..Default::default()
+        },
+        "moonshot" => ModelCapabilities {
+            supports_tools: true,
+            supports_streaming: true,
+            supports_json_mode: true,
+            context_window: Some(200_000),
+            max_output_tokens: Some(8_192),
+            ..Default::default()
+        },
+        "minimax" => ModelCapabilities {
+            supports_tools: true,
+            supports_streaming: true,
+            context_window: Some(200_000),
+            max_output_tokens: Some(8_192),
+            ..Default::default()
+        },
+        "nvidia" => ModelCapabilities {
+            supports_tools: true,
+            supports_streaming: true,
+            context_window: Some(128_000),
+            max_output_tokens: Some(4_096),
+            ..Default::default()
+        },
+        "deepcogito" => ModelCapabilities {
+            supports_tools: true,
+            supports_streaming: true,
+            context_window: Some(128_000),
+            max_output_tokens: Some(8_192),
             ..Default::default()
         },
         _ => ModelCapabilities::default(),
