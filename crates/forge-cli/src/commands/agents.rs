@@ -456,7 +456,7 @@ async fn run_agent(
                     // it into a synthetic tool_call so the agent loop
                     // can still execute it.
                     if tool_calls.is_empty() && !response_content.is_empty() {
-                        if let Some(parsed) = parse_text_leaked_tool_call(&response_content) {
+                        if let Some(parsed) = crate::agents::execution::parse_text_leaked_tool_call(&response_content) {
                             tool_calls.push(parsed);
                             response_content.clear();
                         }
@@ -555,50 +555,6 @@ async fn build_tool_definitions(
     }
 
     definitions
-}
-
-/// Try to recover a tool call that a model emitted as JSON-in-content
-/// instead of structured `tool_calls` (a quirk of several Ollama-cloud
-/// reasoning models). Recognised shapes (with or without ```json fences):
-///   {"name": "<tool>", "arguments": { ... }}
-///   {"name": "<tool>", "parameters": { ... }}
-/// Returns None if the content does not look like a tool call.
-fn parse_text_leaked_tool_call(content: &str) -> Option<ToolCall> {
-    let mut text = content.trim();
-    if let Some(stripped) = text.strip_prefix("```json") {
-        text = stripped.trim();
-    } else if let Some(stripped) = text.strip_prefix("```") {
-        text = stripped.trim();
-    }
-    if let Some(stripped) = text.strip_suffix("```") {
-        text = stripped.trim();
-    }
-
-    let v: serde_json::Value = serde_json::from_str(text).ok()?;
-    let obj = v.as_object()?;
-    let name = obj.get("name").and_then(|n| n.as_str())?;
-    let args = obj
-        .get("arguments")
-        .or_else(|| obj.get("parameters"))
-        .cloned()
-        .unwrap_or_else(|| serde_json::json!({}));
-    let args_json = serde_json::to_string(&args).ok()?;
-
-    Some(ToolCall::new(
-        format!("call_leaked_{}", uuid_like()),
-        name,
-        args_json,
-    ))
-}
-
-/// Cheap unique-ish suffix without pulling in the uuid crate.
-fn uuid_like() -> String {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    let nanos = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or(0);
-    format!("{:x}", nanos)
 }
 
 /// Convert an agent-configured tool to a ToolDefinition for the LLM.

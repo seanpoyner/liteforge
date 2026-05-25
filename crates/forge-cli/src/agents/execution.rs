@@ -206,3 +206,43 @@ async fn execute_agent_tool(
         )),
     }
 }
+
+/// Try to recover a tool call that a model emitted as JSON-in-content
+/// instead of structured `tool_calls`. Common with Ollama `:cloud` /
+/// `-cloud` reasoning models. Recognised shapes (with or without
+/// ```json fences):
+///   {"name": "<tool>", "arguments": { ... }}
+///   {"name": "<tool>", "parameters": { ... }}
+/// Returns None if the content does not look like a tool call.
+pub fn parse_text_leaked_tool_call(content: &str) -> Option<ToolCall> {
+    let mut text = content.trim();
+    if let Some(stripped) = text.strip_prefix("```json") {
+        text = stripped.trim();
+    } else if let Some(stripped) = text.strip_prefix("```") {
+        text = stripped.trim();
+    }
+    if let Some(stripped) = text.strip_suffix("```") {
+        text = stripped.trim();
+    }
+
+    let v: serde_json::Value = serde_json::from_str(text).ok()?;
+    let obj = v.as_object()?;
+    let name = obj.get("name").and_then(|n| n.as_str())?;
+    let args = obj
+        .get("arguments")
+        .or_else(|| obj.get("parameters"))
+        .cloned()
+        .unwrap_or_else(|| serde_json::json!({}));
+    let args_json = serde_json::to_string(&args).ok()?;
+
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    Some(ToolCall::new(
+        format!("call_leaked_{:x}", nanos),
+        name,
+        args_json,
+    ))
+}
