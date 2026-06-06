@@ -1,6 +1,6 @@
 # liteforge
 
-Rust SDK for the **Travel Innovation Platform (LiteForge)** -- a unified interface for LLM completions, streaming, tool calling, RAG, agents, guardrails, MCP, observability, and more, all through an OpenAI-compatible API.
+**LiteForge** is a Rust SDK providing a unified interface for LLM completions, streaming, tool calling, RAG, agents, guardrails, MCP, observability, and more, all through an OpenAI-compatible API.
 
 > Part of the [liteforge](../../README.md) workspace. For Python bindings see [`liteforge-py`](../liteforge-py/), for JS/TS see [`liteforge-js`](../liteforge-js/), for the CLI see [`forge-cli`](../forge-cli/).
 
@@ -8,7 +8,7 @@ Rust SDK for the **Travel Innovation Platform (LiteForge)** -- a unified interfa
 
 ```toml
 [dependencies]
-liteforge = { git = "https://gitea.poyner.ai/sean/liteforge.git" }
+liteforge = { git = "https://github.com/seanpoyner/liteforge.git" }
 ```
 
 Or for local workspace development:

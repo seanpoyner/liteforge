@@ -10,12 +10,12 @@ High-performance Python bindings for the **LiteForge**, powered by a Rust core v
 
 **From release wheel:**
 ```bash
-pip install https://gitea.poyner.ai/sean/liteforge/releases/latest/download/liteforge-py3-none-any.whl
+pip install https://github.com/seanpoyner/liteforge/releases/latest/download/liteforge-py3-none-any.whl
 ```
 
 **From git:**
 ```bash
-pip install "git+https://gitea.poyner.ai/sean/liteforge.git#subdirectory=crates/liteforge-py"
+pip install "git+https://github.com/seanpoyner/liteforge.git#subdirectory=crates/liteforge-py"
 ```
 
 **Development install (requires Rust 1.70+ and maturin):**

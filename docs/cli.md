@@ -7,19 +7,19 @@ The `forge` command-line tool provides access to LiteForge features from the ter
 === "Quick Install (macOS / Linux)"
 
     ```bash
-    git clone https://gitea.poyner.ai/sean/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
+    git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
     ```
 
 === "Quick Install (Windows)"
 
     ```powershell
-    git clone https://gitea.poyner.ai/sean/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
+    git clone https://github.com/seanpoyner/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
     ```
 
 === "Homebrew"
 
     ```bash
-    brew tap sean/forge https://gitea.poyner.ai/sean/homebrew-forge.git
+    brew tap seanpoyner/forge https://github.com/seanpoyner/homebrew-forge.git
     brew install forge-cli
     ```
 

@@ -20,7 +20,7 @@
     Run without prompts (requires environment variables to be set)
 
 .EXAMPLE
-    git clone https://gitea.poyner.ai/sean/liteforge.git $env:TEMP\liteforge
+    git clone https://github.com/seanpoyner/liteforge.git $env:TEMP\liteforge
     & $env:TEMP\liteforge\scripts\install.ps1
     Remove-Item -Recurse -Force $env:TEMP\liteforge
 
@@ -42,7 +42,7 @@ $ErrorActionPreference = "Stop"
 # Configuration
 # ============================================================================
 
-$script:GitHubReleaseUrl = "https://gitea.poyner.ai/sean/liteforge/releases"
+$script:GitHubReleaseUrl = "https://github.com/seanpoyner/liteforge/releases"
 $script:DefaultBaseUrl = "https://api.example.com/v1"
 $script:DefaultModel = "anthropic.claude-haiku-4-5-20251001-v1:0"
 
@@ -733,7 +733,7 @@ function Install-PythonSdk {
     } catch {
         Write-Warning "Could not install from wheel (GHE requires auth), trying git..."
         try {
-            & python -m pip install --user "git+https://gitea.poyner.ai/sean/liteforge.git#subdirectory=crates/liteforge-py"
+            & python -m pip install --user "git+https://github.com/seanpoyner/liteforge.git#subdirectory=crates/liteforge-py"
             Write-Success "liteforge-py installed from git"
         } catch {
             Write-Error "Failed to install Python SDK: $_"
@@ -786,7 +786,7 @@ function Install-NodeSdk {
     } catch {
         Write-Warning "Could not install from tgz (GHE requires auth), trying git..."
         try {
-            & npm install -g "git+https://gitea.poyner.ai/sean/liteforge.git#subdirectory=crates/liteforge-js"
+            & npm install -g "git+https://github.com/seanpoyner/liteforge.git#subdirectory=crates/liteforge-js"
             Write-Success "liteforge-js installed from git"
         } catch {
             Write-Error "Failed to install Node.js SDK: $_"
@@ -804,7 +804,7 @@ function Install-RustSdk {
     Write-Output "  Add to your Cargo.toml:"
     Write-Host ""
     Write-Output '    [dependencies]'
-    Write-Output '    liteforge = { git = "https://gitea.poyner.ai/sean/liteforge.git" }'
+    Write-Output '    liteforge = { git = "https://github.com/seanpoyner/liteforge.git" }'
     Write-Host ""
 
     Write-Success "Rust SDK instructions provided"
@@ -995,7 +995,7 @@ function Write-Summary {
     Write-Output "  2. Test the CLI: forge --help"
     Write-Output "  3. Try a chat: forge chat `"Hello, world!`""
     Write-Output ""
-    Write-Output "Documentation: https://gitea.poyner.ai/sean/liteforge"
+    Write-Output "Documentation: https://github.com/seanpoyner/liteforge"
     Write-Output ""
 }
 

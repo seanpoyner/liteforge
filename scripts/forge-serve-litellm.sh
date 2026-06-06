@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Start `forge serve user` pointed at the LiteLLM gateway at litellm.poyner.ai.
+# Start `forge serve user` pointed at a LiteLLM (or any OpenAI-compatible) gateway.
 #
 # Required env:
 #   LITELLM_API_KEY   The bearer token the gateway expects (your LiteLLM master/user key).
 #
 # Optional env:
-#   LITELLM_BASE_URL  Defaults to https://litellm.poyner.ai/v1
+#   LITELLM_BASE_URL  Defaults to https://your-gateway.example.com/v1
 #   LITEFORGE_DEFAULT_MODEL  Sent on requests that don't specify a model.
 #                            Defaults to anthropic.claude-haiku-4-5-20251001-v1:0
 #                            (matches the model id seen in the demo notebook).
@@ -35,7 +35,7 @@ if [[ -z "${LITELLM_API_KEY:-}" ]]; then
     exit 2
 fi
 
-LITELLM_BASE_URL="${LITELLM_BASE_URL:-https://litellm.poyner.ai/v1}"
+LITELLM_BASE_URL="${LITELLM_BASE_URL:-https://your-gateway.example.com/v1}"
 USER_PORT="${USER_PORT:-8080}"
 DEFAULT_MODEL="${LITEFORGE_DEFAULT_MODEL:-anthropic.claude-haiku-4-5-20251001-v1:0}"
 
