@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
@@ -85,7 +85,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install maturin
         run: pip install maturin
@@ -143,7 +143,7 @@ jobs:
           node-version: '20'
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install dependencies
         working-directory: crates/liteforge-js
@@ -218,17 +218,17 @@ jobs:
           echo "" >> CHANGELOG.md
           echo "### Quick Install (macOS/Linux)" >> CHANGELOG.md
           echo '```bash' >> CHANGELOG.md
-          echo 'git clone https://gitea.poyner.ai/sean/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge' >> CHANGELOG.md
+          echo 'git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge' >> CHANGELOG.md
           echo '```' >> CHANGELOG.md
           echo "" >> CHANGELOG.md
           echo "### Quick Install (Windows)" >> CHANGELOG.md
           echo '```powershell' >> CHANGELOG.md
-          echo 'git clone https://gitea.poyner.ai/sean/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge' >> CHANGELOG.md
+          echo 'git clone https://github.com/seanpoyner/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge' >> CHANGELOG.md
           echo '```' >> CHANGELOG.md
           echo "" >> CHANGELOG.md
           echo "### Homebrew (macOS/Linux)" >> CHANGELOG.md
           echo '```bash' >> CHANGELOG.md
-          echo 'brew tap sean/forge https://gitea.poyner.ai/sean/homebrew-forge.git' >> CHANGELOG.md
+          echo 'brew tap seanpoyner/forge https://github.com/seanpoyner/homebrew-forge.git' >> CHANGELOG.md
           echo 'brew install forge-cli' >> CHANGELOG.md
           echo '```' >> CHANGELOG.md
 
@@ -247,7 +247,9 @@ jobs:
     name: Publish Node.js to Artifactory
     needs: [build-nodejs]
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.ref, '-') }}  # Skip for prereleases
+    # Opt-in: set repository variable ENABLE_NPM_PUBLISH=true and secret
+    # ARTIFACTORY_NPM_TOKEN to publish to npm. Skipped (not failed) otherwise.
+    if: ${{ vars.ENABLE_NPM_PUBLISH == 'true' && !contains(github.ref, '-') }}
 
     steps:
       - uses: actions/checkout@v4
@@ -291,13 +293,16 @@ jobs:
     name: Update Homebrew Tap
     needs: [release]
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.ref, '-') }}  # Skip for prereleases
+    # Opt-in: set repository variable ENABLE_HOMEBREW_TAP=true, secret
+    # HOMEBREW_TAP_TOKEN, and create the seanpoyner/homebrew-forge repo first.
+    # Skipped (not failed) otherwise.
+    if: ${{ vars.ENABLE_HOMEBREW_TAP == 'true' && !contains(github.ref, '-') }}
 
     steps:
       - name: Checkout homebrew-forge
         uses: actions/checkout@v4
         with:
-          repository: sean/homebrew-forge
+          repository: seanpoyner/homebrew-forge
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           path: homebrew-forge
 
@@ -327,12 +332,12 @@ jobs:
       - name: Update formula
         run: |
           VERSION=${{ steps.checksums.outputs.version }}
-          RELEASE_URL="https://gitea.poyner.ai/sean/liteforge/releases/download/v${VERSION}"
+          RELEASE_URL="https://github.com/seanpoyner/liteforge/releases/download/v${VERSION}"
 
           cat > homebrew-forge/Formula/forge-cli.rb << 'EOF'
           class TipCli < Formula
             desc "LiteForge CLI for AI development"
-            homepage "https://gitea.poyner.ai/sean/liteforge"
+            homepage "https://github.com/seanpoyner/liteforge"
             version "${{ steps.checksums.outputs.version }}"
             license "MIT"
 

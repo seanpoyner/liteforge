@@ -1,6 +1,6 @@
 # LiteForge (Rust)
 
-High-performance Rust SDK for the **Travel Innovation Platform** with Python bindings via PyO3 and JavaScript/TypeScript bindings via napi-rs.
+**LiteForge** is a high-performance Rust SDK for building LLM applications, with Python bindings via PyO3 and JavaScript/TypeScript bindings via napi-rs.
 
 ## Overview
 
@@ -49,19 +49,19 @@ liteforge/
 === "macOS / Linux"
 
     ```bash
-    git clone https://gitea.poyner.ai/sean/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
+    git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
     ```
 
 === "Windows (PowerShell)"
 
     ```powershell
-    git clone https://gitea.poyner.ai/sean/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
+    git clone https://github.com/seanpoyner/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
     ```
 
 === "Homebrew"
 
     ```bash
-    brew tap sean/forge https://gitea.poyner.ai/sean/homebrew-forge.git
+    brew tap seanpoyner/forge https://github.com/seanpoyner/homebrew-forge.git
     brew install forge-cli
     ```
 

@@ -16,7 +16,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://gitea.poyner.ai/sean/liteforge.git"
+    "url": "https://github.com/seanpoyner/liteforge.git"
   },
   "files": [
     "index.js",
