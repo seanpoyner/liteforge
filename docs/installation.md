@@ -7,13 +7,13 @@ This guide covers installing the LiteForge components on macOS, Linux, and Windo
 ### macOS / Linux
 
 ```bash
-git clone https://gitea.poyner.ai/sean/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
+git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-git clone https://gitea.poyner.ai/sean/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
+git clone https://github.com/seanpoyner/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
 ```
 
 > **Note:** Building from source on Windows requires either:
@@ -35,7 +35,7 @@ For macOS and Linux users, you can also install via Homebrew:
 
 ```bash
 # Add the tap
-brew tap sean/forge https://gitea.poyner.ai/sean/homebrew-forge.git
+brew tap seanpoyner/forge https://github.com/seanpoyner/homebrew-forge.git
 
 # Install the CLI
 brew install forge-cli
@@ -99,7 +99,7 @@ forge --version
 
 ### Installing forge-cli
 
-1. Download the binary for your platform from [GitHub Releases](https://gitea.poyner.ai/sean/liteforge/releases):
+1. Download the binary for your platform from [GitHub Releases](https://github.com/seanpoyner/liteforge/releases):
    - `forge-cli-x86_64-unknown-linux-gnu.tar.gz` (Linux x64)
    - `forge-cli-aarch64-unknown-linux-gnu.tar.gz` (Linux ARM64)
    - `forge-cli-x86_64-apple-darwin.tar.gz` (macOS Intel)
@@ -132,24 +132,24 @@ forge --version
 
 **From GitHub Release:**
 ```bash
-pip install https://gitea.poyner.ai/sean/liteforge/releases/latest/download/liteforge-py3-none-any.whl
+pip install https://github.com/seanpoyner/liteforge/releases/latest/download/liteforge-py3-none-any.whl
 ```
 
 **From Git:**
 ```bash
-pip install "git+https://gitea.poyner.ai/sean/liteforge.git#subdirectory=crates/liteforge-py"
+pip install "git+https://github.com/seanpoyner/liteforge.git#subdirectory=crates/liteforge-py"
 ```
 
 ### Installing liteforge-js (Node.js)
 
 **From GitHub Release:**
 ```bash
-npm install https://gitea.poyner.ai/sean/liteforge/releases/latest/download/liteforge.tgz
+npm install https://github.com/seanpoyner/liteforge/releases/latest/download/liteforge.tgz
 ```
 
 **From Git:**
 ```bash
-npm install "git+https://gitea.poyner.ai/sean/liteforge.git#subdirectory=crates/liteforge-js"
+npm install "git+https://github.com/seanpoyner/liteforge.git#subdirectory=crates/liteforge-js"
 ```
 
 ### Installing liteforge (Rust)
@@ -158,7 +158,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-liteforge = { git = "https://gitea.poyner.ai/sean/liteforge.git" }
+liteforge = { git = "https://github.com/seanpoyner/liteforge.git" }
 ```
 
 ## Configuration
@@ -291,11 +291,11 @@ All installers support `--build-from-source` for environments where pre-built bi
 
 ```bash
 # macOS / Linux
-git clone https://gitea.poyner.ai/sean/liteforge.git /tmp/liteforge
+git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge
 bash /tmp/liteforge/scripts/install.sh --build-from-source
 
 # Windows (requires WSL)
-git clone https://gitea.poyner.ai/sean/liteforge.git $env:TEMP\liteforge
+git clone https://github.com/seanpoyner/liteforge.git $env:TEMP\liteforge
 & $env:TEMP\liteforge\scripts\install.ps1 -BuildFromSource
 ```
 
@@ -343,10 +343,10 @@ To upgrade to the latest version, re-run the installer:
 
 ```bash
 # macOS / Linux
-git clone https://gitea.poyner.ai/sean/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
+git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
 
 # Windows
-git clone https://gitea.poyner.ai/sean/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
+git clone https://github.com/seanpoyner/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
 ```
 
 Or with Homebrew:

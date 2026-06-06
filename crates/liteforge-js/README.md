@@ -10,12 +10,12 @@ High-performance JavaScript/TypeScript bindings for the **LiteForge**, powered b
 
 **From release tarball:**
 ```bash
-npm install https://gitea.poyner.ai/sean/liteforge/releases/latest/download/liteforge.tgz
+npm install https://github.com/seanpoyner/liteforge/releases/latest/download/liteforge.tgz
 ```
 
 **From git:**
 ```bash
-npm install "git+https://gitea.poyner.ai/sean/liteforge.git#subdirectory=crates/liteforge-js"
+npm install "git+https://github.com/seanpoyner/liteforge.git#subdirectory=crates/liteforge-js"
 ```
 
 **Local development (npm link):**

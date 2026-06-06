@@ -7,19 +7,19 @@ For a complete guide covering all platforms and install methods, see the [Instal
 === "macOS / Linux"
 
     ```bash
-    git clone https://gitea.poyner.ai/sean/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
+    git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
     ```
 
 === "Windows (PowerShell)"
 
     ```powershell
-    git clone https://gitea.poyner.ai/sean/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
+    git clone https://github.com/seanpoyner/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
     ```
 
 === "Homebrew"
 
     ```bash
-    brew tap sean/forge https://gitea.poyner.ai/sean/homebrew-forge.git
+    brew tap seanpoyner/forge https://github.com/seanpoyner/homebrew-forge.git
     brew install forge-cli
     ```
 
@@ -29,13 +29,13 @@ Add `liteforge` to your project's `Cargo.toml`:
 
 ```toml
 [dependencies]
-liteforge = { git = "https://gitea.poyner.ai/sean/liteforge.git" }
+liteforge = { git = "https://github.com/seanpoyner/liteforge.git" }
 ```
 
 ### Build from Source
 
 ```bash
-git clone https://gitea.poyner.ai/sean/liteforge.git
+git clone https://github.com/seanpoyner/liteforge.git
 cd liteforge
 cargo build --all
 ```

@@ -4,7 +4,7 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org)
 [![Node.js](https://img.shields.io/badge/node-18%2B-green.svg)](https://nodejs.org)
 
-High-performance Rust SDK for the **Travel Innovation Platform (LiteForge)** with first-class Python bindings via PyO3 and JavaScript/TypeScript bindings via napi-rs. Provides a unified interface for LLM completions, streaming, tool calling, RAG, agents, guardrails, MCP, observability, and a full-featured CLI with an Agent Development Kit.
+**LiteForge** is a high-performance Rust SDK for building LLM applications, with first-class Python bindings via PyO3 and JavaScript/TypeScript bindings via napi-rs. Provides a unified interface for LLM completions, streaming, tool calling, RAG, agents, guardrails, MCP, observability, and a full-featured CLI with an Agent Development Kit.
 
 ## Feature Matrix
 
@@ -42,17 +42,17 @@ Every module in the core Rust SDK is exposed to all three language targets:
 
 **macOS / Linux:**
 ```bash
-git clone https://gitea.poyner.ai/sean/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
+git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
 ```
 
 **Windows (PowerShell):**
 ```powershell
-git clone https://gitea.poyner.ai/sean/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
+git clone https://github.com/seanpoyner/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
 ```
 
 **Homebrew (macOS / Linux):**
 ```bash
-brew tap sean/forge https://gitea.poyner.ai/sean/homebrew-forge.git
+brew tap seanpoyner/forge https://github.com/seanpoyner/homebrew-forge.git
 brew install forge-cli
 ```
 
@@ -63,17 +63,17 @@ The installer prompts for your LiteForge API key, configures credentials (writte
 **Rust** -- add to your `Cargo.toml`:
 ```toml
 [dependencies]
-liteforge = { git = "https://gitea.poyner.ai/sean/liteforge.git" }
+liteforge = { git = "https://github.com/seanpoyner/liteforge.git" }
 ```
 
 **Python:**
 ```bash
-pip install https://gitea.poyner.ai/sean/liteforge/releases/latest/download/liteforge-py3-none-any.whl
+pip install https://github.com/seanpoyner/liteforge/releases/latest/download/liteforge-py3-none-any.whl
 ```
 
 **JavaScript / TypeScript:**
 ```bash
-npm install https://gitea.poyner.ai/sean/liteforge/releases/latest/download/liteforge.tgz
+npm install https://github.com/seanpoyner/liteforge/releases/latest/download/liteforge.tgz
 ```
 
 ## Quick Start
@@ -549,7 +549,7 @@ graph TD
 
 ```bash
 # Clone the repository
-git clone https://gitea.poyner.ai/sean/liteforge.git
+git clone https://github.com/seanpoyner/liteforge.git
 cd liteforge
 
 # Build all crates
