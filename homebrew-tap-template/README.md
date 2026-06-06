@@ -4,12 +4,12 @@ This directory contains template files for the Homebrew tap repository.
 
 ## Setup Instructions
 
-1. Create a new repository at `gitea.poyner.ai/sean/homebrew-forge`
+1. Create a new repository at `github.com/seanpoyner/homebrew-forge`
 
 2. Copy these files to the new repository:
    ```bash
    # Clone the new empty repo
-   git clone https://gitea.poyner.ai/sean/homebrew-forge.git
+   git clone https://github.com/seanpoyner/homebrew-forge.git
    cd homebrew-forge
 
    # Copy template files
@@ -31,7 +31,7 @@ Once the tap is set up, users can install forge-cli with:
 
 ```bash
 # Add the tap
-brew tap sean/forge https://gitea.poyner.ai/sean/homebrew-forge.git
+brew tap seanpoyner/forge https://github.com/seanpoyner/homebrew-forge.git
 
 # Install forge-cli
 brew install forge-cli

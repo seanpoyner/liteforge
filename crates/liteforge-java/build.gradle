@@ -85,7 +85,7 @@ publishing {
             pom {
                 name = 'LiteForge Java'
                 description = 'Java bindings for the LiteForge'
-                url = 'https://gitea.poyner.ai/sean/liteforge'
+                url = 'https://github.com/seanpoyner/liteforge'
 
                 licenses {
                     license {

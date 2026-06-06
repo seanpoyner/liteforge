@@ -382,7 +382,7 @@ async fn run_agent(
                         request = request.max_tokens(max);
                     }
 
-                    // Ollama `:cloud` models on litellm.poyner.ai emit
+                    // Ollama `:cloud` models on your OpenAI-compatible gateway emit
                     // tool_calls as plain-text content under streaming.
                     // For those, fall back to non-streaming so tool_calls
                     // come through as structured data.

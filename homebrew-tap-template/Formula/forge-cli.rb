@@ -3,29 +3,29 @@
 
 class TipCli < Formula
   desc "LiteForge CLI for AI development"
-  homepage "https://gitea.poyner.ai/sean/liteforge"
+  homepage "https://github.com/seanpoyner/liteforge"
   version "0.1.0"
   license "MIT"
 
   # SHA256 checksums are updated automatically by the release workflow
   on_macos do
     on_arm do
-      url "https://gitea.poyner.ai/sean/liteforge/releases/download/v0.1.0/forge-cli-aarch64-apple-darwin.tar.gz"
+      url "https://github.com/seanpoyner/liteforge/releases/download/v0.1.0/forge-cli-aarch64-apple-darwin.tar.gz"
       sha256 "PLACEHOLDER_SHA256"
     end
     on_intel do
-      url "https://gitea.poyner.ai/sean/liteforge/releases/download/v0.1.0/forge-cli-x86_64-apple-darwin.tar.gz"
+      url "https://github.com/seanpoyner/liteforge/releases/download/v0.1.0/forge-cli-x86_64-apple-darwin.tar.gz"
       sha256 "PLACEHOLDER_SHA256"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://gitea.poyner.ai/sean/liteforge/releases/download/v0.1.0/forge-cli-aarch64-unknown-linux-gnu.tar.gz"
+      url "https://github.com/seanpoyner/liteforge/releases/download/v0.1.0/forge-cli-aarch64-unknown-linux-gnu.tar.gz"
       sha256 "PLACEHOLDER_SHA256"
     end
     on_intel do
-      url "https://gitea.poyner.ai/sean/liteforge/releases/download/v0.1.0/forge-cli-x86_64-unknown-linux-gnu.tar.gz"
+      url "https://github.com/seanpoyner/liteforge/releases/download/v0.1.0/forge-cli-x86_64-unknown-linux-gnu.tar.gz"
       sha256 "PLACEHOLDER_SHA256"
     end
   end
@@ -43,7 +43,7 @@ class TipCli < Formula
         forge config set-secret forge-api-key
 
       For more information, visit:
-        https://gitea.poyner.ai/sean/liteforge
+        https://github.com/seanpoyner/liteforge
     EOS
   end
 

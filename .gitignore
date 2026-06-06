@@ -43,6 +43,9 @@ Thumbs.db
 # Claude Code
 .claude/
 
+# Cursor (personal skills/rules; mirrors ~/.cursor)
+.cursor/
+
 # .devcontainer/ is intentionally committed
 
 # Python virtual environments

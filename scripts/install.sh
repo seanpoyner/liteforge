@@ -3,12 +3,12 @@
 # LiteForge Installer for macOS and Linux
 #
 # Usage (recommended - downloads pre-built binary, falls back to source build):
-#   git clone https://gitea.poyner.ai/sean/liteforge.git /tmp/liteforge
+#   git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge
 #   bash /tmp/liteforge/scripts/install.sh
 #   rm -rf /tmp/liteforge
 #
 # Or as one-liner:
-#   git clone https://gitea.poyner.ai/sean/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
+#   git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
 #
 # To force building from source (requires a C toolchain):
 #   LITEFORGE_BUILD_FROM_SOURCE=1 bash /tmp/liteforge/scripts/install.sh
@@ -23,8 +23,8 @@ set -euo pipefail
 
 LITEFORGE_VERSION="${LITEFORGE_VERSION:-latest}"
 LITEFORGE_HOME="${LITEFORGE_HOME:-$HOME/.forge}"
-GITHUB_BASE_URL="${GITHUB_BASE_URL:-https://gitea.poyner.ai/api/v1/repos/sean/liteforge}"
-GITHUB_RELEASE_URL="${GITHUB_RELEASE_URL:-https://gitea.poyner.ai/sean/liteforge/releases}"
+GITHUB_BASE_URL="${GITHUB_BASE_URL:-https://api.github.com/repos/seanpoyner/liteforge}"
+GITHUB_RELEASE_URL="${GITHUB_RELEASE_URL:-https://github.com/seanpoyner/liteforge/releases}"
 
 # Detect if running from a git clone (for building from source)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -562,7 +562,7 @@ install_cli() {
         echo
         echo "  Options:"
         echo "    1. Re-run with source build:  ${CYAN}LITEFORGE_BUILD_FROM_SOURCE=1 bash $0${NC}"
-        echo "    2. Clone the repo and retry:  ${CYAN}git clone https://gitea.poyner.ai/sean/liteforge.git /tmp/liteforge${NC}"
+        echo "    2. Clone the repo and retry:  ${CYAN}git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge${NC}"
         echo "       ${CYAN}LITEFORGE_BUILD_FROM_SOURCE=1 bash /tmp/liteforge/scripts/install.sh${NC}"
         echo
         die "Cannot install forge-cli"
@@ -627,7 +627,7 @@ install_python_sdk() {
 
     install_pip_package "$download_url" 2>/dev/null || {
         warn "Could not install from wheel (GHE requires auth), trying git install..."
-        install_pip_package "git+https://gitea.poyner.ai/sean/liteforge.git#subdirectory=crates/liteforge-py" || {
+        install_pip_package "git+https://github.com/seanpoyner/liteforge.git#subdirectory=crates/liteforge-py" || {
             error "Failed to install Python SDK"
             return 1
         }
@@ -681,7 +681,7 @@ install_node_sdk() {
 
     npm_install_global "$download_url" 2>/dev/null || {
         warn "Could not install from tgz (GHE requires auth), trying git..."
-        npm_install_global "git+https://gitea.poyner.ai/sean/liteforge.git#subdirectory=crates/liteforge-js" || {
+        npm_install_global "git+https://github.com/seanpoyner/liteforge.git#subdirectory=crates/liteforge-js" || {
             error "Failed to install Node.js SDK"
             return 1
         }
@@ -700,7 +700,7 @@ install_rust_sdk() {
     echo "  Add to your Cargo.toml:"
     echo
     echo "    ${CYAN}[dependencies]${NC}"
-    echo "    ${CYAN}liteforge = { git = \"https://gitea.poyner.ai/sean/liteforge.git\" }${NC}"
+    echo "    ${CYAN}liteforge = { git = \"https://github.com/seanpoyner/liteforge.git\" }${NC}"
     echo
 
     success "Rust SDK instructions provided"
@@ -934,7 +934,7 @@ print_summary() {
     echo "  2. Test the CLI: forge --help"
     echo "  3. Try a chat: forge chat \"Hello, world!\""
     echo
-    echo "Documentation: https://gitea.poyner.ai/sean/liteforge"
+    echo "Documentation: https://github.com/seanpoyner/liteforge"
     echo
 }
 
