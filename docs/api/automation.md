@@ -96,7 +96,7 @@ pub struct ScheduleConfig {
 ## JavaScript / TypeScript
 
 ```javascript
-import { AutomationBuilder } from '@forge/sdk';
+import { AutomationBuilder } from '@seanpoyner/liteforge';
 
 const automation = new AutomationBuilder('daily-report');
 ```

@@ -12,7 +12,7 @@ import {
   findPii,
   detectInjection,
   checkAll,
-} from '@forge/sdk';
+} from '@seanpoyner/liteforge';
 
 // --- PII Detection ---
 console.log('=== PII Detection ===\n');

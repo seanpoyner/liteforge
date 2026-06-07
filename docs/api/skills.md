@@ -104,7 +104,7 @@ let composed = SkillComposer::new()
 import {
   getSummarizeSkill, getTranslateSkill,
   getExtractSkill, getRewriteSkill, getQaSkill,
-} from '@forge/sdk';
+} from '@seanpoyner/liteforge';
 
 const summarize = getSummarizeSkill();
 const translate = getTranslateSkill();
