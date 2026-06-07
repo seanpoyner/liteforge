@@ -17,6 +17,14 @@
 
 set -euo pipefail
 
+# When run via a pipe (curl -fsSL .../install.sh | bash), stdin is the script
+# itself, so interactive `read` prompts would fail. Reconnect stdin to the
+# terminal if one is available; otherwise prompts fall back / require
+# --non-interactive with env vars.
+if [ ! -t 0 ] && [ -r /dev/tty ]; then
+    exec < /dev/tty
+fi
+
 # ============================================================================
 # Configuration
 # ============================================================================
