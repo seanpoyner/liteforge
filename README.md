@@ -38,42 +38,43 @@ Every module in the core Rust SDK is exposed to all three language targets:
 
 ## Installation
 
-### Quick Install (Recommended)
+### Quick Install (CLI)
 
 **macOS / Linux:**
 ```bash
-git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
+curl -fsSL https://raw.githubusercontent.com/seanpoyner/liteforge/main/scripts/install.sh | bash
 ```
 
 **Windows (PowerShell):**
 ```powershell
-git clone https://github.com/seanpoyner/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
+irm https://raw.githubusercontent.com/seanpoyner/liteforge/main/scripts/install.ps1 | iex
 ```
 
 **Homebrew (macOS / Linux):**
 ```bash
-brew tap seanpoyner/forge https://github.com/seanpoyner/homebrew-forge.git
-brew install forge-cli
+brew install seanpoyner/forge/forge-cli
 ```
 
-The installer prompts for your LiteForge API key, configures credentials (written directly to `~/.forge/config.toml` and shell env files), and lets you choose which components to install. See the [Installation Guide](docs/installation.md) for detailed instructions.
+The installer downloads the pre-built `forge` binary from the latest GitHub release
+(falling back to a source build), prompts for your API key, and writes config to
+`~/.forge/config.toml`. To run unattended, set `LITEFORGE_API_KEY` and pass
+`--non-interactive`. See the [Installation Guide](docs/installation.md) for details.
 
 ### SDK-Specific Install
 
-**Rust** -- add to your `Cargo.toml`:
-```toml
-[dependencies]
-liteforge = { git = "https://github.com/seanpoyner/liteforge.git" }
+**Python** ([PyPI](https://pypi.org/project/liteforge/)):
+```bash
+pip install liteforge
 ```
 
-**Python:**
+**Rust** ([crates.io](https://crates.io/crates/liteforge)):
 ```bash
-pip install https://github.com/seanpoyner/liteforge/releases/latest/download/liteforge-py3-none-any.whl
+cargo add liteforge
 ```
 
-**JavaScript / TypeScript:**
+**JavaScript / TypeScript** (npm):
 ```bash
-npm install https://github.com/seanpoyner/liteforge/releases/latest/download/liteforge.tgz
+npm install @seanpoyner/liteforge
 ```
 
 ## Quick Start
