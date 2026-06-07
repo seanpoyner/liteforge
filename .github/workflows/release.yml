@@ -214,15 +214,18 @@ jobs:
         with:
           packages-dir: dist
 
-  # Build Node.js package
-  build-nodejs:
-    name: Build Node.js package (${{ matrix.os }})
+  # Build the napi-rs native binding per platform. All .node files are bundled
+  # into a single npm package (one package -> one trusted publisher).
+  build-node:
+    name: Build napi (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-
+        include:
+          - { os: ubuntu-latest,  target: x86_64-unknown-linux-gnu }
+          - { os: macos-latest,   target: aarch64-apple-darwin }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v4
 
@@ -233,29 +236,34 @@ jobs:
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
-      - name: Install dependencies
+      - name: Install NASM (Windows, for aws-lc-rs)
+        if: runner.os == 'Windows'
+        uses: ilammy/setup-nasm@v1
+
+      - name: Install deps
         working-directory: crates/liteforge-js
         run: npm install
 
-      - name: Build
+      - name: Build native binding
         working-directory: crates/liteforge-js
-        run: npm run build
+        run: npx napi build --platform --release --target ${{ matrix.target }}
 
-      - name: Pack
-        working-directory: crates/liteforge-js
-        run: npm pack
-
-      - name: Upload package
+      - name: Upload binding + JS glue
         uses: actions/upload-artifact@v4
         with:
-          name: nodejs-package-${{ matrix.os }}
-          path: crates/liteforge-js/*.tgz
+          name: node-${{ matrix.target }}
+          path: |
+            crates/liteforge-js/*.node
+            crates/liteforge-js/index.js
+            crates/liteforge-js/index.d.ts
 
   # Create GitHub Release
   release:
     name: Create Release
-    needs: [build-cli, build-wheels-linux, build-wheels-macos, build-wheels-windows, build-python-sdist, build-nodejs]
+    needs: [build-cli, build-wheels-linux, build-wheels-macos, build-wheels-windows, build-python-sdist, build-node]
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}   # tags only (skip on manual workflow_dispatch test builds)
     permissions:
@@ -332,51 +340,47 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Publish Node.js package to Artifactory
-  publish-nodejs:
-    name: Publish Node.js to Artifactory
-    needs: [build-nodejs]
+  # Publish to npm via OIDC Trusted Publishing (no token). Single package
+  # (@seanpoyner/liteforge) bundling every platform's .node binary.
+  # Setup: publish once manually (npm login) to create the package, then add a
+  # Trusted Publisher (repo seanpoyner/liteforge, workflow release.yml) in the
+  # package's npmjs.com settings. OIDC auto-publish works from the next version.
+  publish-npm:
+    name: Publish to npm (Trusted Publishing)
+    needs: [build-node]
     runs-on: ubuntu-latest
-    # Opt-in: set repository variable ENABLE_NPM_PUBLISH=true and secret
-    # ARTIFACTORY_NPM_TOKEN to publish to npm. Skipped (not failed) otherwise.
-    if: ${{ vars.ENABLE_NPM_PUBLISH == 'true' && !contains(github.ref, '-') }}
-
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'                       # npm trusted publishing needs npm >= 11.5.1
+          registry-url: 'https://registry.npmjs.org'
 
-      - name: Download Node.js artifacts
+      - name: Update npm (>= 11.5.1 for OIDC)
+        run: npm install -g npm@latest
+
+      - name: Download all platform bindings
         uses: actions/download-artifact@v4
         with:
-          pattern: nodejs-package-*
-          path: artifacts
+          pattern: node-*
+          path: crates/liteforge-js
+          merge-multiple: true
 
-      - name: Configure npm for Artifactory
-        run: |
-          echo "@forge:registry=https://registry.npmjs.org/" > ~/.npmrc
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.ARTIFACTORY_NPM_TOKEN }}" >> ~/.npmrc
-
-      - name: Publish to Artifactory
+      - name: Show package contents
         working-directory: crates/liteforge-js
         run: |
-          # Extract version from tag
-          VERSION=${GITHUB_REF#refs/tags/v}
+          ls -la
+          node -p "require('./package.json').name + '@' + require('./package.json').version"
 
-          # Update package version to match tag
-          npm version $VERSION --no-git-tag-version
-
-          # Install dependencies and build
-          npm install
-          npm run build
-
-          # Publish to Artifactory
-          npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_NPM_TOKEN }}
+      - name: Publish
+        working-directory: crates/liteforge-js
+        run: npm publish --access public
 
   # Update Homebrew tap
   update-homebrew:
