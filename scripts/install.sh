@@ -258,7 +258,7 @@ check_prerequisites() {
 # ============================================================================
 
 install_ca_certs() {
-    info "Installing corporate CA certificates..."
+    info "Installing a LiteForge-scoped CA bundle (no changes to the system trust store)..."
 
     local cert_source=""
     local cert_dest="$LITEFORGE_HOME/certs/ca-bundle.crt"
@@ -294,30 +294,15 @@ install_ca_certs() {
         cp "$cert_source" "$cert_dest"
     fi
 
-    success "CA certificates copied to $cert_dest"
+    success "CA bundle written to $cert_dest"
 
-    # Platform-specific trust store installation
-    if [[ "$OS" == "darwin" ]]; then
-        if confirm "Add certificates to macOS Keychain?" "y"; then
-            sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "$cert_dest" 2>/dev/null || {
-                warn "Could not add certs to system Keychain (requires sudo)"
-                warn "You may need to manually trust the certs"
-            }
-            success "Added certificates to macOS Keychain"
-        fi
-    elif [[ "$OS" == "linux" ]]; then
-        if confirm "Add certificates to system trust store?" "y"; then
-            if [[ -d /usr/local/share/ca-certificates ]]; then
-                sudo cp "$cert_dest" /usr/local/share/ca-certificates/forge-ca-bundle.crt 2>/dev/null && \
-                sudo update-ca-certificates 2>/dev/null || {
-                    warn "Could not update system CA certificates (requires sudo)"
-                }
-                success "Added certificates to system trust store"
-            else
-                warn "Could not find CA certificates directory"
-            fi
-        fi
-    fi
+    # Scoped to LiteForge only. The bundle is exposed to the forge CLI and the
+    # Python/Node SDKs through environment variables in ~/.forge/env (see
+    # write_env_file): LITEFORGE_EXTRA_CA_FILE for the Rust client, and
+    # SSL_CERT_FILE / REQUESTS_CA_BUNDLE / NODE_EXTRA_CA_CERTS for the bindings.
+    # We deliberately do NOT add these certs to the OS trust store, so this
+    # install never widens the trust base of the whole machine.
+    info "These certificates are trusted by LiteForge only, not the system trust store."
 }
 
 # ============================================================================
@@ -475,6 +460,43 @@ need_pip() {
 # Component Installation
 # ============================================================================
 
+# Verify a downloaded artifact against the release SHA256SUMS manifest.
+# Fails closed: if the manifest cannot be fetched, has no entry for the asset,
+# or the hash does not match, the install aborts rather than running an
+# unverified binary.
+verify_sha256() {
+    local file="$1" asset="$2"
+    local sums_url
+    if [[ "$LITEFORGE_VERSION" == "latest" ]]; then
+        sums_url="${GITHUB_RELEASE_URL}/latest/download/SHA256SUMS"
+    else
+        sums_url="${GITHUB_RELEASE_URL}/download/v${LITEFORGE_VERSION}/SHA256SUMS"
+    fi
+
+    local sums
+    if command -v curl >/dev/null 2>&1; then
+        sums=$(curl -sSfL "$sums_url" 2>/dev/null) || die "Could not fetch SHA256SUMS from $sums_url; refusing to install an unverified binary"
+    else
+        sums=$(wget -qO- "$sums_url" 2>/dev/null) || die "Could not fetch SHA256SUMS from $sums_url; refusing to install an unverified binary"
+    fi
+
+    local expected
+    expected=$(printf '%s\n' "$sums" | awk -v a="$asset" '$2 == a || $2 == "*" a {print $1; exit}')
+    [[ -n "$expected" ]] || die "No checksum entry for $asset in SHA256SUMS; refusing to install an unverified binary"
+
+    local actual
+    if command -v sha256sum >/dev/null 2>&1; then
+        actual=$(sha256sum "$file" | awk '{print $1}')
+    elif command -v shasum >/dev/null 2>&1; then
+        actual=$(shasum -a 256 "$file" | awk '{print $1}')
+    else
+        die "Need 'sha256sum' or 'shasum' to verify download integrity"
+    fi
+
+    [[ "$actual" == "$expected" ]] || die "Checksum mismatch for $asset (expected $expected, got $actual); aborting"
+    success "Verified $asset (sha256)"
+}
+
 try_install_prebuilt_cli() {
     local bin_dir="$1"
 
@@ -500,6 +522,9 @@ try_install_prebuilt_cli() {
     else
         return 1
     fi
+
+    # Verify integrity before extracting/executing. This aborts on mismatch.
+    verify_sha256 "$tmp_dir/forge-cli.tar.gz" "$archive_name"
 
     tar -xzf "$tmp_dir/forge-cli.tar.gz" -C "$tmp_dir" || return 1
 
@@ -765,10 +790,15 @@ export LITEFORGE_TEMPORAL_URL="${LITEFORGE_TEMPORAL_URL:-}"
 # Add LiteForge binaries to PATH
 export PATH="\$HOME/.forge/bin:\$HOME/.forge/node/node_modules/.bin:\$PATH"
 
-# SSL certificate configuration (only if not already set by user)
-[ -z "\$SSL_CERT_FILE" ] && export SSL_CERT_FILE="\$HOME/.forge/certs/ca-bundle.crt"
-[ -z "\$REQUESTS_CA_BUNDLE" ] && export REQUESTS_CA_BUNDLE="\$HOME/.forge/certs/ca-bundle.crt"
-[ -z "\$NODE_EXTRA_CA_CERTS" ] && export NODE_EXTRA_CA_CERTS="\$HOME/.forge/certs/ca-bundle.crt"
+# LiteForge-scoped CA bundle (only when present and not already set by user).
+# These are read by LiteForge and its language bindings only; the bundle is
+# never added to the system trust store.
+if [ -f "\$HOME/.forge/certs/ca-bundle.crt" ]; then
+    [ -z "\$LITEFORGE_EXTRA_CA_FILE" ] && export LITEFORGE_EXTRA_CA_FILE="\$HOME/.forge/certs/ca-bundle.crt"
+    [ -z "\$SSL_CERT_FILE" ] && export SSL_CERT_FILE="\$HOME/.forge/certs/ca-bundle.crt"
+    [ -z "\$REQUESTS_CA_BUNDLE" ] && export REQUESTS_CA_BUNDLE="\$HOME/.forge/certs/ca-bundle.crt"
+    [ -z "\$NODE_EXTRA_CA_CERTS" ] && export NODE_EXTRA_CA_CERTS="\$HOME/.forge/certs/ca-bundle.crt"
+fi
 EOF
 
     success "Created $LITEFORGE_HOME/env"
@@ -967,8 +997,13 @@ main() {
                 LITEFORGE_HOME="$2"
                 shift 2
                 ;;
+            --with-ca-bundle)
+                WITH_CERTS=1
+                shift
+                ;;
             --skip-certs)
-                SKIP_CERTS=1
+                # Deprecated: CA bundle install is now opt-in (off by default).
+                # Accepted as a no-op for backward compatibility.
                 shift
                 ;;
             --build-from-source)
@@ -985,7 +1020,8 @@ main() {
                 echo "Options:"
                 echo "  --version VERSION      Install specific version (default: latest)"
                 echo "  --home PATH            Install to custom directory (default: ~/.forge)"
-                echo "  --skip-certs           Skip CA certificate installation"
+                echo "  --with-ca-bundle       Install a LiteForge-scoped CA bundle (for internal/proxy CAs;"
+                echo "                         off by default, never touches the system trust store)"
                 echo "  --build-from-source    Force building from source instead of downloading pre-built binaries"
                 echo "  --non-interactive      Run without prompts (requires env vars)"
                 echo "  -h, --help             Show this help message"
@@ -1006,7 +1042,10 @@ main() {
     detect_platform
     check_prerequisites
 
-    if [[ -z "${SKIP_CERTS:-}" ]]; then
+    # CA bundle install is opt-in (off by default). Most users do not need it;
+    # it only matters behind a TLS-inspecting proxy with an internal CA. When
+    # enabled it is scoped to LiteForge, never added to the system trust store.
+    if [[ -n "${WITH_CERTS:-}" ]]; then
         install_ca_certs
     fi
 

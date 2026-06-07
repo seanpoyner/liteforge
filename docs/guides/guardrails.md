@@ -2,6 +2,14 @@
 
 LiteForge provides safety guardrails for PII detection, PII redaction, and prompt injection detection.
 
+!!! warning "Heuristic, not a guarantee"
+    These guardrails are heuristic (pattern and rule based). They will miss
+    novel PII formats and injection phrasings, and they can produce false
+    positives. Treat them as one defense-in-depth layer, not a sole control.
+    For safety- or compliance-critical use, combine them with server-side
+    policy enforcement, human review of high-risk actions, and your own
+    evaluation on representative data.
+
 ## Quick Check
 
 Run all guardrails at once:
