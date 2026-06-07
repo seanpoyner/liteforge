@@ -4,7 +4,12 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:        # manual build test (no PyPI publish / no GitHub release)
+  workflow_dispatch:        # manual build test (no PyPI/crates publish, no GitHub release)
+    inputs:
+      publish_npm:
+        description: 'Also publish @seanpoyner/liteforge to npm (uses the NPM_TOKEN secret)'
+        type: boolean
+        default: false
 
 env:
   CARGO_TERM_COLOR: always
@@ -367,26 +372,22 @@ jobs:
   # (@seanpoyner/liteforge) bundling every platform's .node binary.
   # Setup: publish once manually (npm login) to create the package, then add a
   # Trusted Publisher (repo seanpoyner/liteforge, workflow release.yml) in the
-  # package's npmjs.com settings. OIDC auto-publish works from the next version.
+  # the NPM_TOKEN secret (a granular token with "bypass 2FA", or a Classic
+  # Automation token). Single package bundling every platform's .node binary.
+  # Runs on a v* tag, or on a manual run with the `publish_npm` input checked.
   publish-npm:
-    name: Publish to npm (Trusted Publishing)
+    name: Publish to npm (token)
     needs: [build-node]
     runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}
-    permissions:
-      id-token: write
-      contents: read
+    if: ${{ (startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-')) || (github.event_name == 'workflow_dispatch' && inputs.publish_npm) }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'                       # npm trusted publishing needs npm >= 11.5.1
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Update npm (>= 11.5.1 for OIDC)
-        run: npm install -g npm@latest
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'   # writes the token-aware .npmrc
 
       - name: Download all platform bindings
         uses: actions/download-artifact@v4
@@ -404,6 +405,8 @@ jobs:
       - name: Publish
         working-directory: crates/liteforge-js
         run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # Update Homebrew tap
   update-homebrew:
