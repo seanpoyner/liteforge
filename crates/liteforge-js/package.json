@@ -1,22 +1,24 @@
 {
-  "name": "@forge/sdk",
-  "version": "0.2.0",
+  "name": "@seanpoyner/liteforge",
+  "version": "0.2.3",
   "description": "High-performance JavaScript/TypeScript bindings for LiteForge (Rust core)",
   "main": "index.js",
   "types": "index.d.ts",
   "napi": {
     "name": "liteforge",
     "triples": {
-      "defaults": true,
+      "defaults": false,
       "additional": [
-        "aarch64-apple-darwin"
+        "x86_64-unknown-linux-gnu",
+        "aarch64-apple-darwin",
+        "x86_64-pc-windows-msvc"
       ]
     }
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/seanpoyner/liteforge.git"
+    "url": "git+https://github.com/seanpoyner/liteforge.git"
   },
   "files": [
     "index.js",
@@ -27,12 +29,12 @@
     "@napi-rs/cli": "^2.18.0"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "scripts": {
-    "build": "napi build --release",
-    "build:debug": "napi build",
-    "artifacts": "napi artifacts",
-    "prepublishOnly": "npm run build"
+    "build": "napi build --platform --release",
+    "build:debug": "napi build --platform",
+    "artifacts": "napi artifacts"
   }
 }

@@ -7,13 +7,13 @@ This guide covers installing the LiteForge components on macOS, Linux, and Windo
 ### macOS / Linux
 
 ```bash
-git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
+curl -fsSL https://raw.githubusercontent.com/seanpoyner/liteforge/main/scripts/install.sh | bash
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-git clone https://github.com/seanpoyner/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
+irm https://raw.githubusercontent.com/seanpoyner/liteforge/main/scripts/install.ps1 | iex
 ```
 
 > **Note:** Building from source on Windows requires either:
@@ -132,7 +132,7 @@ forge --version
 
 **From GitHub Release:**
 ```bash
-pip install https://github.com/seanpoyner/liteforge/releases/latest/download/liteforge-py3-none-any.whl
+pip install liteforge
 ```
 
 **From Git:**
@@ -144,7 +144,7 @@ pip install "git+https://github.com/seanpoyner/liteforge.git#subdirectory=crates
 
 **From GitHub Release:**
 ```bash
-npm install https://github.com/seanpoyner/liteforge/releases/latest/download/liteforge.tgz
+npm install @seanpoyner/liteforge
 ```
 
 **From Git:**
@@ -158,7 +158,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-liteforge = { git = "https://github.com/seanpoyner/liteforge.git" }
+liteforge = "0.2"
 ```
 
 ## Configuration
@@ -343,10 +343,10 @@ To upgrade to the latest version, re-run the installer:
 
 ```bash
 # macOS / Linux
-git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
+curl -fsSL https://raw.githubusercontent.com/seanpoyner/liteforge/main/scripts/install.sh | bash
 
 # Windows
-git clone https://github.com/seanpoyner/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
+irm https://raw.githubusercontent.com/seanpoyner/liteforge/main/scripts/install.ps1 | iex
 ```
 
 Or with Homebrew:

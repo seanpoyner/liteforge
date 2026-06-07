@@ -8,18 +8,17 @@ The `forge` command-line tool for **LiteForge** -- chat with LLMs, manage models
 
 **macOS / Linux:**
 ```bash
-git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
+curl -fsSL https://raw.githubusercontent.com/seanpoyner/liteforge/main/scripts/install.sh | bash
 ```
 
 **Windows (PowerShell):**
 ```powershell
-git clone https://github.com/seanpoyner/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
+irm https://raw.githubusercontent.com/seanpoyner/liteforge/main/scripts/install.ps1 | iex
 ```
 
 **Homebrew:**
 ```bash
-brew tap seanpoyner/forge https://github.com/seanpoyner/homebrew-forge.git
-brew install forge-cli
+brew install seanpoyner/forge/forge-cli
 ```
 
 **From source:**

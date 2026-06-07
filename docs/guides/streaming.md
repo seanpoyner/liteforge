@@ -97,7 +97,7 @@ asyncio.run(main())
 ## JavaScript / TypeScript Streaming
 
 ```javascript
-import { AsyncForgeClient, createMessageUser } from '@forge/sdk';
+import { AsyncForgeClient, createMessageUser } from '@seanpoyner/liteforge';
 
 const client = new AsyncForgeClient();
 const stream = await client.completeStream([

@@ -151,7 +151,7 @@ Available handlers:
 ### Agent Configuration & Memory
 
 ```javascript
-import { JsAgentConfig, JsAgentMemory } from '@forge/sdk';
+import { JsAgentConfig, JsAgentMemory } from '@seanpoyner/liteforge';
 
 const config = new JsAgentConfig('travel-assistant');
 config.withSystemPrompt('You are an expert travel planner.');
@@ -186,7 +186,7 @@ memory.clearWorking();
 ### Tool-Calling Agent
 
 ```javascript
-import { AsyncForgeClient, ToolRegistry, ToolCallingAgent, JsAgentConfig } from '@forge/sdk';
+import { AsyncForgeClient, ToolRegistry, ToolCallingAgent, JsAgentConfig } from '@seanpoyner/liteforge';
 
 const client = new AsyncForgeClient();
 const registry = new ToolRegistry();
