@@ -11,7 +11,7 @@ import {
   ToolRegistry,
   ToolExecutor,
   validateJsonSchema,
-} from '@forge/sdk';
+} from '@seanpoyner/liteforge';
 
 // --- Create a Tool Registry ---
 const registry = new ToolRegistry();

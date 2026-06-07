@@ -11,7 +11,7 @@ import {
   ManagedConversation,
   CompactingConversation,
   ConversationConfig,
-} from '@forge/sdk';
+} from '@seanpoyner/liteforge';
 
 // --- ManagedConversation ---
 console.log('=== Managed Conversation ===\n');

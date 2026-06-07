@@ -118,7 +118,7 @@ snapshot = metrics.snapshot()
 ## JavaScript / TypeScript Usage
 
 ```javascript
-import { Tracer, MetricsCollector } from '@forge/sdk';
+import { Tracer, MetricsCollector } from '@seanpoyner/liteforge';
 
 // Tracing
 const tracer = new Tracer('my-service');
