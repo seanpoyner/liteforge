@@ -13,8 +13,14 @@
 .PARAMETER ForgeHome
     Installation directory (default: $env:USERPROFILE\.forge)
 
+.PARAMETER WithCaBundle
+    Install a LiteForge-scoped CA bundle (for internal/proxy CAs). Off by
+    default. When set, the bundle is exposed to LiteForge via environment
+    variables only; it is never added to the Windows certificate store.
+
 .PARAMETER SkipCerts
-    Skip CA certificate installation
+    Deprecated. CA bundle install is now opt-in (see -WithCaBundle); this
+    switch is accepted as a no-op for backward compatibility.
 
 .PARAMETER NonInteractive
     Run without prompts (requires environment variables to be set)
@@ -32,6 +38,7 @@
 param(
     [string]$Version = "latest",
     [string]$ForgeHome = "$env:USERPROFILE\.forge",
+    [switch]$WithCaBundle,
     [switch]$SkipCerts,
     [switch]$NonInteractive
 )
@@ -184,18 +191,23 @@ function Test-Prerequisites {
 # ============================================================================
 
 function Install-CACertificates {
-    if ($SkipCerts) {
+    # Opt-in only. Most users do not need this; it matters behind a
+    # TLS-inspecting proxy with an internal CA. When enabled, the bundle is
+    # scoped to LiteForge via environment variables and is NEVER added to the
+    # Windows certificate store, so this install does not widen the trust base
+    # of the whole machine.
+    if (-not $WithCaBundle) {
         return
     }
 
-    Write-Info "Installing corporate CA certificates..."
+    Write-Info "Installing a LiteForge-scoped CA bundle (no changes to the Windows certificate store)..."
 
     $certDir = Join-Path $ForgeHome "certs"
     $certDest = Join-Path $certDir "ca-bundle.crt"
 
     New-Item -ItemType Directory -Path $certDir -Force | Out-Null
 
-    # Check for local cert bundle when running from git clone
+    # Prefer a local bundle when running from a git clone
     $certSource = $null
     if ($script:InRepo) {
         $localCert = Join-Path $script:RepoRoot "certs\combined-full-ca-bundle.crt"
@@ -206,9 +218,8 @@ function Install-CACertificates {
 
     if ($certSource) {
         Copy-Item -Path $certSource -Destination $certDest -Force
-        Write-Success "CA certificates copied to $certDest"
+        Write-Success "CA bundle written to $certDest"
     } else {
-        # Try downloading from releases (requires auth on GHE)
         $certUrl = if ($Version -eq "latest") {
             "$script:GitHubReleaseUrl/latest/download/ca-bundle.crt"
         } else {
@@ -217,116 +228,22 @@ function Install-CACertificates {
 
         try {
             Invoke-WebRequest -Uri $certUrl -OutFile $certDest -UseBasicParsing
-            Write-Success "CA certificates downloaded to $certDest"
+            Write-Success "CA bundle downloaded to $certDest"
         } catch {
-            Write-Warning "Could not download CA bundle (GHE requires auth) - skipping cert installation"
+            Write-Warning "Could not download CA bundle - skipping"
             return
         }
     }
 
-    # Add to Windows certificate store (required for cargo, curl, and other native tools)
-    Write-Host ""
-    Write-Output "  Note: Adding certs to Windows store is required for cargo/Rust builds."
-    if (Read-Confirm "Add certificates to Windows certificate store?" $true) {
-        try {
-            # Read all certs from the bundle file
-            $certContent = Get-Content $certDest -Raw
-            $certMatches = [regex]::Matches($certContent, '-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----')
-            $addedCount = 0
-
-            $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "CurrentUser")
-            $store.Open("ReadWrite")
-
-            foreach ($match in $certMatches) {
-                try {
-                    $certBytes = [System.Text.Encoding]::UTF8.GetBytes($match.Value)
-                    $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certBytes)
-                    $store.Add($cert)
-                    $addedCount++
-                } catch {
-                    # Skip invalid certs
-                }
-            }
-
-            $store.Close()
-            Write-Success "Added $addedCount certificates to Windows certificate store"
-        } catch {
-            Write-Warning "Could not add certificates to store: $_"
-        }
-    } else {
-        Write-Warning "Skipping cert store - cargo/Rust builds may fail with SSL errors"
+    # Expose the bundle to LiteForge and its language bindings via environment
+    # variables (process + persisted at User scope). LITEFORGE_EXTRA_CA_FILE is
+    # read by the Rust client; the others cover the Python/Node SDKs.
+    foreach ($name in @("LITEFORGE_EXTRA_CA_FILE", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS")) {
+        Set-Item -Path "Env:\$name" -Value $certDest
+        [Environment]::SetEnvironmentVariable($name, $certDest, "User")
     }
 
-    # Detect and install proxy CA certificates (e.g., Netskope, Zscaler)
-    Write-Info "Detecting proxy/SSL inspection certificates..."
-    $proxyTestUrls = @("https://index.crates.io", "https://registry.npmjs.org", "https://pypi.org")
-    $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "CurrentUser")
-    $store.Open("ReadWrite")
-    $proxyCAAdded = $false
-
-    foreach ($testUrl in $proxyTestUrls) {
-        try {
-            $req = [System.Net.HttpWebRequest]::Create($testUrl)
-            $req.Timeout = 10000
-            $null = $req.GetResponse()
-            $cert = $req.ServicePoint.Certificate
-
-            if ($cert) {
-                # Build certificate chain to find root CA
-                $chain = New-Object System.Security.Cryptography.X509Certificates.X509Chain
-                $chain.ChainPolicy.RevocationMode = [System.Security.Cryptography.X509Certificates.X509RevocationMode]::NoCheck
-                $x509 = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($cert)
-                $null = $chain.Build($x509)
-
-                if ($chain.ChainElements.Count -gt 0) {
-                    $rootCert = $chain.ChainElements[$chain.ChainElements.Count - 1].Certificate
-
-                    # Check if this looks like a proxy CA (not a standard public CA)
-                    $issuer = $rootCert.Issuer
-                    if ($issuer -match "goskope|netskope|zscaler|forcepoint|bluecoat|proxy" -or
-                        ($false)  # corporate CA detection (configure if needed)) {
-
-                        # Check if already in store
-                        $existing = $store.Certificates | Where-Object { $_.Thumbprint -eq $rootCert.Thumbprint }
-                        if (-not $existing) {
-                            $store.Add($rootCert)
-                            Write-Success "Added proxy CA: $($rootCert.Subject)"
-                            $proxyCAAdded = $true
-
-                            # Also append to our CA bundle file
-                            $pemCert = "-----BEGIN CERTIFICATE-----`n"
-                            $pemCert += [Convert]::ToBase64String($rootCert.RawData, [Base64FormattingOptions]::InsertLineBreaks)
-                            $pemCert += "`n-----END CERTIFICATE-----`n"
-                            Add-Content -Path $certDest -Value $pemCert
-                        }
-                        break  # Found proxy CA, no need to check other URLs
-                    }
-                }
-            }
-        } catch {
-            # Connection failed, try next URL
-        }
-    }
-
-    $store.Close()
-
-    if (-not $proxyCAAdded) {
-        Write-Success "No proxy CA detected (direct connection or already trusted)"
-    }
-
-    # Set SSL environment variables for current session
-    # For Python/Node tools that respect these vars
-    $env:REQUESTS_CA_BUNDLE = $certDest
-    $env:NODE_EXTRA_CA_CERTS = $certDest
-
-    # IMPORTANT: Clear cert file env vars that would override Windows cert store for cargo
-    # Windows cert store already has proxy CAs (like Netskope), but custom cert files may not
-    Remove-Item Env:\SSL_CERT_FILE -ErrorAction SilentlyContinue
-    Remove-Item Env:\CURL_CA_BUNDLE -ErrorAction SilentlyContinue
-    Remove-Item Env:\CARGO_HTTP_CAINFO -ErrorAction SilentlyContinue
-
-    # Disable revocation checks for cargo (proxy certs often fail revocation)
-    $env:CARGO_HTTP_CHECK_REVOKE = "false"
+    Write-Info "These certificates are trusted by LiteForge only, not the Windows certificate store."
 }
 
 # ============================================================================
@@ -607,6 +524,36 @@ function Install-Cli {
             return
         }
 
+        # Verify integrity against the release SHA256SUMS manifest before
+        # extracting or executing. Fails closed: a missing manifest, a missing
+        # entry, or a hash mismatch aborts the install.
+        $sumsUrl = if ($Version -eq "latest") {
+            "$script:GitHubReleaseUrl/latest/download/SHA256SUMS"
+        } else {
+            "$script:GitHubReleaseUrl/download/v$Version/SHA256SUMS"
+        }
+        try {
+            $sumsText = (Invoke-WebRequest -Uri $sumsUrl -UseBasicParsing).Content
+        } catch {
+            throw "Could not fetch SHA256SUMS from $sumsUrl; refusing to install an unverified binary"
+        }
+        $expected = $null
+        foreach ($line in ($sumsText -split "`n")) {
+            $parts = $line.Trim() -split '\s+', 2
+            if ($parts.Count -eq 2) {
+                $name = $parts[1].TrimStart('*')
+                if ($name -eq $archiveName) { $expected = $parts[0].ToLower(); break }
+            }
+        }
+        if (-not $expected) {
+            throw "No checksum entry for $archiveName in SHA256SUMS; refusing to install an unverified binary"
+        }
+        $actual = (Get-FileHash -Path $archivePath -Algorithm SHA256).Hash.ToLower()
+        if ($actual -ne $expected) {
+            throw "Checksum mismatch for $archiveName (expected $expected, got $actual); aborting"
+        }
+        Write-Success "Verified $archiveName (sha256)"
+
         Expand-Archive -Path $archivePath -DestinationPath $tempDir -Force
 
         $binary = Get-ChildItem -Path $tempDir -Filter "forge.exe" -Recurse | Select-Object -First 1
@@ -859,16 +806,16 @@ timeout = 60
         [Environment]::SetEnvironmentVariable("LITEFORGE_TEMPORAL_URL", $script:TipTemporalUrl, "User")
     }
 
-    # SSL certificate environment variables
+    # LiteForge-scoped CA bundle env vars (only when the opt-in bundle exists).
+    # These are read by LiteForge and its bindings; the bundle is never added to
+    # the Windows certificate store, and cargo's revocation checks are left on.
     $certPath = Join-Path $ForgeHome "certs\ca-bundle.crt"
     if (Test-Path $certPath) {
+        [Environment]::SetEnvironmentVariable("LITEFORGE_EXTRA_CA_FILE", $certPath, "User")
         [Environment]::SetEnvironmentVariable("SSL_CERT_FILE", $certPath, "User")
         [Environment]::SetEnvironmentVariable("REQUESTS_CA_BUNDLE", $certPath, "User")
         [Environment]::SetEnvironmentVariable("NODE_EXTRA_CA_CERTS", $certPath, "User")
-        # Note: Don't set CARGO_HTTP_CAINFO - let cargo use Windows cert store which has proxy CAs
     }
-    # Disable revocation checks for cargo (proxy certs often fail revocation)
-    [Environment]::SetEnvironmentVariable("CARGO_HTTP_CHECK_REVOKE", "false", "User")
 
     Write-Success "Environment variables configured"
 
