@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 description = "CLI for LiteForge - chat completions, model management, and configuration"
+publish = false
 keywords = ["llm", "ai", "cli", "openai"]
 
 [[bin]]
