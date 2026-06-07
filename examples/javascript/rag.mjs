@@ -12,7 +12,7 @@ import {
   dotProduct,
   euclideanDistance,
   normalize,
-} from '@forge/sdk';
+} from '@seanpoyner/liteforge';
 
 // --- Vector Math Utilities ---
 console.log('=== Vector Math ===\n');

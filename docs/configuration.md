@@ -90,7 +90,7 @@ let key = config.api_key_required()?;
 The JS bindings read the same environment variables as the Rust core. Create a client from environment:
 
 ```javascript
-import { AsyncForgeClient } from '@forge/sdk';
+import { AsyncForgeClient } from '@seanpoyner/liteforge';
 
 // Reads LITEFORGE_API_KEY, LITEFORGE_BASE_URL, LITEFORGE_DEFAULT_MODEL, LITEFORGE_TIMEOUT from env
 const client = new AsyncForgeClient();

@@ -10,7 +10,7 @@ High-performance Python bindings for the **LiteForge**, powered by a Rust core v
 
 **From release wheel:**
 ```bash
-pip install https://github.com/seanpoyner/liteforge/releases/latest/download/liteforge-py3-none-any.whl
+pip install liteforge
 ```
 
 **From git:**

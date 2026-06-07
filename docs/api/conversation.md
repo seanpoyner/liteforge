@@ -78,7 +78,7 @@ pub struct ConversationConfig {
 ## JavaScript / TypeScript
 
 ```javascript
-import { ManagedConversation, CompactingConversation, ConversationConfig } from '@forge/sdk';
+import { ManagedConversation, CompactingConversation, ConversationConfig } from '@seanpoyner/liteforge';
 
 // Simple conversation tracking
 const conv = new ManagedConversation();
