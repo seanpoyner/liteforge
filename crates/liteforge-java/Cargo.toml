@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 description = "Java bindings for liteforge via JNI"
+publish = false
 
 [lib]
 name = "liteforge_java"
