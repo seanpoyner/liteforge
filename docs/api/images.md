@@ -100,7 +100,7 @@ pub struct ImageData {
 ## JavaScript / TypeScript
 
 ```javascript
-import { ImageRequest, ImageSize, ImageQuality, ImageStyle } from '@forge/sdk';
+import { ImageRequest, ImageSize, ImageQuality, ImageStyle } from '@seanpoyner/liteforge';
 
 const request = new ImageRequest('A sunset over mountains');
 request.size = ImageSize.Size1024x1024;

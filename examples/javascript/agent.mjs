@@ -11,7 +11,7 @@ import {
   JsAgentMemory,
   createMessageUser,
   createMessageAssistant,
-} from '@forge/sdk';
+} from '@seanpoyner/liteforge';
 
 // --- Agent Configuration ---
 console.log('=== Agent Configuration ===\n');

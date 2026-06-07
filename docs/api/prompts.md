@@ -87,7 +87,7 @@ let qa_template = CommonPrompts::qa();
 ## JavaScript / TypeScript
 
 ```javascript
-import { PromptTemplate, PromptLibrary, CommonPrompts } from '@forge/sdk';
+import { PromptTemplate, PromptLibrary, CommonPrompts } from '@seanpoyner/liteforge';
 
 const template = new PromptTemplate('Summarize: {{text}}');
 const rendered = template.render({ text: 'Your document...' });

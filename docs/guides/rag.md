@@ -148,7 +148,7 @@ results = index.search(query_embedding, top_k=5)
 import {
   VectorIndex, cosineSimilarity, dotProduct,
   euclideanDistance, normalize, chunk,
-} from '@forge/sdk';
+} from '@seanpoyner/liteforge';
 
 // Chunk text
 const chunks = chunk('Your long document text...', 512, 50, 'recursive');
