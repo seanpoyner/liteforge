@@ -327,7 +327,14 @@ jobs:
           # CA certificate bundle
           cp certs/combined-full-ca-bundle.crt release-assets/ca-bundle.crt
 
+          # Checksum manifest over every release asset, so the installers can
+          # verify downloads before executing them. Generated last so it covers
+          # all artifacts above.
+          ( cd release-assets && sha256sum * > SHA256SUMS )
+
           ls -la release-assets/
+          echo "----- SHA256SUMS -----"
+          cat release-assets/SHA256SUMS
 
       - name: Generate changelog
         id: changelog

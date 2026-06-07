@@ -231,6 +231,11 @@ let pipeline = RagPipelineBuilder::new(client)
 
 ### Guardrails
 
+> **Note:** The PII and prompt-injection guardrails are heuristic (pattern and
+> rule based). They are a useful defense-in-depth layer, not a guarantee. Do not
+> rely on them as the sole control for safety or compliance; pair them with
+> server-side policy, human review for high-risk actions, and your own testing.
+
 ```rust
 use liteforge::{detect_pii, detect_injection, check_all};
 
