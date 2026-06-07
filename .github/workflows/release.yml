@@ -4,10 +4,14 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:        # manual build test (no PyPI publish / no GitHub release)
 
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  # Opt into Node 24 for JS actions now (silences the Node 20 deprecation warnings;
+  # becomes the default June 16 2026 anyway).
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   # Build CLI binaries for all platforms
@@ -88,15 +92,13 @@ jobs:
           name: wheels-linux
           path: dist/*.whl
 
-  # Build Python wheels — macOS (x86_64 + arm64). Best-effort: feeds the GitHub
-  # Release. To also publish these to PyPI, add this job to publish-pypi.needs.
+  # Build Python wheels — macOS (native arm64). Best-effort: feeds the GitHub
+  # Release. Interpreters are pinned to 3.10/3.11/3.12 (PyO3 0.21 max is 3.12;
+  # `--find-interpreter` would also pick up the runner's 3.13/3.14 and fail).
+  # Intel Macs fall back to the sdist; add a universal2 build later if needed.
   build-wheels-macos:
-    name: Build Python wheels (macOS ${{ matrix.target }})
+    name: Build Python wheels (macOS arm64)
     runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [x86_64, aarch64]
     steps:
       - uses: actions/checkout@v4
 
@@ -111,13 +113,12 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           command: build
-          target: ${{ matrix.target }}
-          args: --release -m crates/liteforge-py/Cargo.toml --out dist --find-interpreter
+          args: --release -m crates/liteforge-py/Cargo.toml --out dist -i 3.10 3.11 3.12
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-macos-${{ matrix.target }}
+          name: wheels-macos
           path: dist/*.whl
 
   # Build Python wheels — Windows. Best-effort (aws-lc-rs needs NASM).
@@ -141,7 +142,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           command: build
-          args: --release -m crates/liteforge-py/Cargo.toml --out dist --find-interpreter
+          args: --release -m crates/liteforge-py/Cargo.toml --out dist -i 3.10 3.11 3.12
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -177,7 +178,7 @@ jobs:
     name: Publish to PyPI (Trusted Publishing)
     needs: [build-wheels-linux, build-python-sdist]
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.ref, '-') }}   # skip pre-releases
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}   # tags only, skip pre-releases
     permissions:
       id-token: write
     steps:
@@ -244,6 +245,7 @@ jobs:
     name: Create Release
     needs: [build-cli, build-wheels-linux, build-wheels-macos, build-wheels-windows, build-python-sdist, build-nodejs]
     runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}   # tags only (skip on manual workflow_dispatch test builds)
     permissions:
       contents: write
 
