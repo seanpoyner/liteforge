@@ -171,12 +171,12 @@ jobs:
 
   # Publish to PyPI via OIDC Trusted Publishing (no API token).
   # Trusted publisher: repo seanpoyner/liteforge, workflow release.yml, env (Any).
-  # Depends only on the tested-good Linux wheels + sdist so a flaky mac/win build
-  # never blocks the release. To add mac/win wheels to PyPI, append their jobs to
-  # `needs` and add download steps for wheels-macos-* / wheels-windows.
+  # Publishes Linux (manylinux2014) + macOS arm64 + Windows wheels + sdist, all
+  # cp310/311/312. If a platform wheel build flakes it will block the release;
+  # re-run that job, or temporarily drop it from `needs` + its download step.
   publish-pypi:
     name: Publish to PyPI (Trusted Publishing)
-    needs: [build-wheels-linux, build-python-sdist]
+    needs: [build-wheels-linux, build-wheels-macos, build-wheels-windows, build-python-sdist]
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}   # tags only, skip pre-releases
     permissions:
@@ -186,6 +186,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: wheels-linux
+          path: dist
+
+      - name: Download macOS wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: wheels-macos
+          path: dist
+
+      - name: Download Windows wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: wheels-windows
           path: dist
 
       - name: Download sdist

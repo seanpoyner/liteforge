@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/liteforge", "crates/liteforge-py", "crates/liteforge-js", "crates/liteforge-java", "crates/forge-cli"]
 
 [workspace.package]
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 license = "MIT"
 authors = ["LiteForge Team"]
