@@ -27,7 +27,7 @@ The JS bindings read the same environment variables as the Rust core:
 ## Quick Start
 
 ```javascript
-import { AsyncForgeClient, createMessageUser, createMessageSystem } from '@forge/sdk';
+import { AsyncForgeClient, createMessageUser, createMessageSystem } from '@seanpoyner/liteforge';
 
 const client = new AsyncForgeClient();
 

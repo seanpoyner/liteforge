@@ -141,7 +141,7 @@ asyncio.run(main())
 ### JavaScript / TypeScript
 
 ```javascript
-import { AsyncForgeClient, createMessageUser } from '@forge/sdk';
+import { AsyncForgeClient, createMessageUser } from '@seanpoyner/liteforge';
 
 const client = new AsyncForgeClient();
 const response = await client.complete([
@@ -153,7 +153,7 @@ console.log(response.choices[0].message.content);
 ### JavaScript Streaming
 
 ```javascript
-import { AsyncForgeClient, createMessageUser } from '@forge/sdk';
+import { AsyncForgeClient, createMessageUser } from '@seanpoyner/liteforge';
 
 const client = new AsyncForgeClient();
 const stream = await client.completeStream([

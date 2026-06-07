@@ -8,7 +8,7 @@
 
 ```toml
 [dependencies]
-liteforge = { git = "https://github.com/seanpoyner/liteforge.git" }
+liteforge = "0.2"
 ```
 
 Or for local workspace development:

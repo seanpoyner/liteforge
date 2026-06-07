@@ -128,7 +128,7 @@ forge guardrails "Call me at 555-123-4567"
 ## JavaScript / TypeScript Usage
 
 ```javascript
-import { detectPii, redactPii, findPii, detectInjection, checkAll } from '@forge/sdk';
+import { detectPii, redactPii, findPii, detectInjection, checkAll } from '@seanpoyner/liteforge';
 
 // PII detection
 const result = detectPii('Contact john@example.com or call 555-123-4567');

@@ -117,7 +117,7 @@ let chain = TransformChain::new()
 ## JavaScript / TypeScript
 
 ```javascript
-import { PipelineContext } from '@forge/sdk';
+import { PipelineContext } from '@seanpoyner/liteforge';
 
 const context = new PipelineContext();
 ```

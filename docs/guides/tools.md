@@ -152,7 +152,7 @@ See the [Agents guide](agents.md) for using tools with the agent framework's aut
 The JS bindings expose a `ToolRegistry` with a callback-based `register` API:
 
 ```javascript
-import { ToolRegistry, ToolExecutor, validateJsonSchema } from '@forge/sdk';
+import { ToolRegistry, ToolExecutor, validateJsonSchema } from '@seanpoyner/liteforge';
 
 const registry = new ToolRegistry();
 
