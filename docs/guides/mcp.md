@@ -110,7 +110,7 @@ config = McpConfig(servers=[
 The JS bindings provide builder-style MCP configuration:
 
 ```javascript
-import { McpServerConfig, McpConfig } from '@forge/sdk';
+import { McpServerConfig, McpConfig } from '@seanpoyner/liteforge';
 
 // Stdio server
 const fsServer = McpServerConfig.stdio('filesystem', 'npx');

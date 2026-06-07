@@ -7,13 +7,13 @@ For a complete guide covering all platforms and install methods, see the [Instal
 === "macOS / Linux"
 
     ```bash
-    git clone https://github.com/seanpoyner/liteforge.git /tmp/liteforge && bash /tmp/liteforge/scripts/install.sh && rm -rf /tmp/liteforge
+    curl -fsSL https://raw.githubusercontent.com/seanpoyner/liteforge/main/scripts/install.sh | bash
     ```
 
 === "Windows (PowerShell)"
 
     ```powershell
-    git clone https://github.com/seanpoyner/liteforge.git $env:TEMP\liteforge; & $env:TEMP\liteforge\scripts\install.ps1; Remove-Item -Recurse -Force $env:TEMP\liteforge
+    irm https://raw.githubusercontent.com/seanpoyner/liteforge/main/scripts/install.ps1 | iex
     ```
 
 === "Homebrew"
@@ -29,7 +29,7 @@ Add `liteforge` to your project's `Cargo.toml`:
 
 ```toml
 [dependencies]
-liteforge = { git = "https://github.com/seanpoyner/liteforge.git" }
+liteforge = "0.2"
 ```
 
 ### Build from Source
@@ -91,7 +91,7 @@ Or reference it directly in your `package.json`:
 ```json
 {
   "dependencies": {
-    "@forge/sdk": "file:../liteforge/crates/liteforge-js"
+    "@seanpoyner/liteforge": "file:../liteforge/crates/liteforge-js"
   }
 }
 ```

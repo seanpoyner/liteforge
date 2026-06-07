@@ -12,7 +12,7 @@ import {
   AsyncForgeClient,
   createMessageSystem,
   createMessageUser,
-} from '@forge/sdk';
+} from '@seanpoyner/liteforge';
 
 const client = new AsyncForgeClient();
 console.log(`Using model: ${client.model}`);
