@@ -10,7 +10,7 @@ import {
   LocalKnowledgeBackend,
   SearchOptions,
   ListOptions,
-} from '@forge/sdk';
+} from '@seanpoyner/liteforge';
 
 const backend = new LocalKnowledgeBackend();
 

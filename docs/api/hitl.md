@@ -115,7 +115,7 @@ See the [Agents Guide](../guides/agents.md#human-in-the-loop) for using HITL wit
 ## JavaScript / TypeScript
 
 ```javascript
-import { createApprovalRequest, RiskLevel } from '@forge/sdk';
+import { createApprovalRequest, RiskLevel } from '@seanpoyner/liteforge';
 
 const request = createApprovalRequest('delete_file', 'Delete user data', RiskLevel.High);
 ```

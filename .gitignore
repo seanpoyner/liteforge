@@ -69,3 +69,7 @@ benchmarks/js_speed_test.mjs
 
 # Junk
 null
+
+# npm auth — never commit
+.npmrc
+**/.npmrc

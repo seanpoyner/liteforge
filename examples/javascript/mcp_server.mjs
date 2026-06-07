@@ -10,7 +10,7 @@
 import {
   McpServerConfig,
   McpConfig,
-} from '@forge/sdk';
+} from '@seanpoyner/liteforge';
 
 // --- Stdio Server ---
 console.log('=== MCP Server Configuration ===\n');
