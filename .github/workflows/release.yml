@@ -67,38 +67,87 @@ jobs:
           name: forge-cli-${{ matrix.target }}
           path: forge-cli-${{ matrix.target }}.${{ matrix.archive }}
 
-  # Build Python wheels
-  build-python:
-    name: Build Python wheels (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-
+  # Build Python wheels — Linux (manylinux2014 → installs on Colab/glibc 2.17+).
+  # These cp310/311/312 wheels are the pip-install-critical artifacts.
+  build-wheels-linux:
+    name: Build Python wheels (manylinux2014)
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Build wheels (cp310/311/312)
+        uses: PyO3/maturin-action@v1
         with:
-          python-version: '3.11'
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install maturin
-        run: pip install maturin
-
-      - name: Build wheel
-        working-directory: crates/liteforge-py
-        run: maturin build --release --out dist
+          command: build
+          args: --release -m crates/liteforge-py/Cargo.toml --out dist -i 3.10 3.11 3.12
+          manylinux: '2014'
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: python-wheels-${{ matrix.os }}
-          path: crates/liteforge-py/dist/*.whl
+          name: wheels-linux
+          path: dist/*.whl
+
+  # Build Python wheels — macOS (x86_64 + arm64). Best-effort: feeds the GitHub
+  # Release. To also publish these to PyPI, add this job to publish-pypi.needs.
+  build-wheels-macos:
+    name: Build Python wheels (macOS ${{ matrix.target }})
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [x86_64, aarch64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: |
+            3.10
+            3.11
+            3.12
+
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          target: ${{ matrix.target }}
+          args: --release -m crates/liteforge-py/Cargo.toml --out dist --find-interpreter
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-macos-${{ matrix.target }}
+          path: dist/*.whl
+
+  # Build Python wheels — Windows. Best-effort (aws-lc-rs needs NASM).
+  build-wheels-windows:
+    name: Build Python wheels (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: |
+            3.10
+            3.11
+            3.12
+
+      - name: Install NASM (for aws-lc-rs)
+        uses: ilammy/setup-nasm@v1
+
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: --release -m crates/liteforge-py/Cargo.toml --out dist --find-interpreter
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-windows
+          path: dist/*.whl
 
   # Build Python source distribution
   build-python-sdist:
@@ -107,23 +156,50 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install maturin
-        run: pip install maturin
-
       - name: Build sdist
-        working-directory: crates/liteforge-py
-        run: maturin sdist --out dist
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: -m crates/liteforge-py/Cargo.toml --out dist
 
       - name: Upload sdist
         uses: actions/upload-artifact@v4
         with:
-          name: python-sdist
-          path: crates/liteforge-py/dist/*.tar.gz
+          name: wheels-sdist
+          path: dist/*.tar.gz
+
+  # Publish to PyPI via OIDC Trusted Publishing (no API token).
+  # Trusted publisher: repo seanpoyner/liteforge, workflow release.yml, env (Any).
+  # Depends only on the tested-good Linux wheels + sdist so a flaky mac/win build
+  # never blocks the release. To add mac/win wheels to PyPI, append their jobs to
+  # `needs` and add download steps for wheels-macos-* / wheels-windows.
+  publish-pypi:
+    name: Publish to PyPI (Trusted Publishing)
+    needs: [build-wheels-linux, build-python-sdist]
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref, '-') }}   # skip pre-releases
+    permissions:
+      id-token: write
+    steps:
+      - name: Download Linux wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: wheels-linux
+          path: dist
+
+      - name: Download sdist
+        uses: actions/download-artifact@v4
+        with:
+          name: wheels-sdist
+          path: dist
+
+      - name: List artifacts
+        run: ls -la dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
 
   # Build Node.js package
   build-nodejs:
@@ -166,7 +242,7 @@ jobs:
   # Create GitHub Release
   release:
     name: Create Release
-    needs: [build-cli, build-python, build-python-sdist, build-nodejs]
+    needs: [build-cli, build-wheels-linux, build-wheels-macos, build-wheels-windows, build-python-sdist, build-nodejs]
     runs-on: ubuntu-latest
     permissions:
       contents: write
