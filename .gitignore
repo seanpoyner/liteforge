@@ -73,3 +73,6 @@ null
 # npm auth — never commit
 .npmrc
 **/.npmrc
+
+# Build output (wheels/sdist) - never commit; built fresh in CI
+dist/

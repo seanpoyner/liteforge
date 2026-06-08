@@ -544,7 +544,7 @@ checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
 
 [[package]]
 name = "forge-cli"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "atty",
  "axum",
@@ -1280,7 +1280,7 @@ checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 
 [[package]]
 name = "liteforge"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -1310,7 +1310,7 @@ dependencies = [
 
 [[package]]
 name = "liteforge-java"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "futures",
  "jni",
@@ -1322,7 +1322,7 @@ dependencies = [
 
 [[package]]
 name = "liteforge-js"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "futures",
  "liteforge",
@@ -1336,7 +1336,7 @@ dependencies = [
 
 [[package]]
 name = "liteforge-py"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "futures",
  "liteforge",
