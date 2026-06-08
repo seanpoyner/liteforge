@@ -1,0 +1,77 @@
+name: Sync Wiki
+
+# Publishes the wiki/ directory (source of truth, version-controlled in this
+# repo) to the GitHub Wiki repo (<repo>.wiki.git) on every push to main that
+# touches wiki/. The wiki repo is part of THIS repository, so the built-in
+# GITHUB_TOKEN with contents:write can push to it — no deploy key needed.
+#
+# One-time prerequisite: the wiki must be initialized once (create any page via
+# the web UI at /wiki) before the first push can succeed. After that this
+# workflow owns all updates. For local publishing, use scripts/sync-wiki.sh.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "wiki/**"
+      - ".github/workflows/sync-wiki.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Avoid concurrent pushes to the wiki repo clobbering each other.
+concurrency:
+  group: sync-wiki
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo (for wiki/ source)
+        uses: actions/checkout@v4
+
+      - name: Mirror wiki/ to the GitHub Wiki and push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if ! ls wiki/*.md >/dev/null 2>&1; then
+            echo "No wiki/*.md pages found — nothing to sync."
+            exit 0
+          fi
+
+          WIKI_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git"
+
+          # Clone the wiki repo. If it doesn't exist yet, fail with a clear hint.
+          if ! git clone --quiet "$WIKI_URL" wiki-repo; then
+            echo "::error::Could not clone ${GITHUB_REPOSITORY}.wiki.git. Initialize the wiki once by creating a page at https://github.com/${GITHUB_REPOSITORY}/wiki, then re-run."
+            exit 1
+          fi
+
+          # Mirror pages: drop existing pages, copy ours, but never the source
+          # dir's own README (it documents wiki/, it is not a wiki page).
+          find wiki-repo -maxdepth 1 -name '*.md' -delete
+          cp wiki/*.md wiki-repo/
+          rm -f wiki-repo/README.md
+
+          cd wiki-repo
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Wiki already up to date — nothing to publish."
+            exit 0
+          fi
+
+          echo "Pages to publish:"
+          git diff --cached --name-status | sed 's/^/  /'
+
+          git config user.name "liteforge-ci"
+          git config user.email "ci@users.noreply.github.com"
+          git commit --quiet -m "docs: sync wiki from wiki/ (${GITHUB_SHA::7})"
+
+          # GitHub wiki repos default to the 'master' branch.
+          BRANCH="$(git symbolic-ref --quiet --short HEAD || echo master)"
+          git push origin "HEAD:${BRANCH}" || git push origin HEAD:master || git push origin HEAD:main
+          echo "Published to https://github.com/${GITHUB_REPOSITORY}/wiki"
