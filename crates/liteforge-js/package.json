@@ -1,6 +1,6 @@
 {
   "name": "@seanpoyner/liteforge",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "High-performance JavaScript/TypeScript bindings for LiteForge (Rust core)",
   "main": "index.js",
   "types": "index.d.ts",
