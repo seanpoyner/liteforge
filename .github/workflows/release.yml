@@ -218,6 +218,9 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist
+          # Resilient to files already on PyPI (e.g. a re-run, or a wheel that
+          # landed before a later one failed) instead of aborting the upload.
+          skip-existing: true
 
   # Publish the core Rust crate to crates.io via OIDC Trusted Publishing (no token).
   # Only the `liteforge` library crate is published; forge-cli + the -py/-js/-java
