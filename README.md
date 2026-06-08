@@ -4,6 +4,8 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org)
 [![Node.js](https://img.shields.io/badge/node-18%2B-green.svg)](https://nodejs.org)
 
+📖 **[Wiki](https://github.com/seanpoyner/liteforge/wiki)** — guided tutorials, architecture diagrams, and the LiteLLM + Ollama integration story · [docs.rs](https://docs.rs/liteforge) · [docs/](docs/)
+
 **LiteForge** is a high-performance Rust SDK for building LLM applications, with first-class Python bindings via PyO3 and JavaScript/TypeScript bindings via napi-rs. Provides a unified interface for LLM completions, streaming, tool calling, RAG, agents, guardrails, MCP, observability, and a full-featured CLI with an Agent Development Kit.
 
 ## Feature Matrix
