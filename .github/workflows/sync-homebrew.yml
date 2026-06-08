@@ -1,0 +1,92 @@
+name: Sync Homebrew Tap
+
+# On-demand updater for the Homebrew formula in seanpoyner/homebrew-forge.
+# Points the formula at a published GitHub release (default: latest), recomputes
+# the binary checksums, and pushes via the write-scoped deploy key
+# (HOMEBREW_TAP_DEPLOY_KEY) — the same mechanism the tagged-release
+# update-homebrew job uses. Run it to sync the tap without cutting a release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version to point at (blank = latest release)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    if: ${{ vars.ENABLE_HOMEBREW_TAP == 'true' }}
+    steps:
+      - name: Checkout tap (deploy key)
+        uses: actions/checkout@v4
+        with:
+          repository: seanpoyner/homebrew-forge
+          ssh-key: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
+          path: tap
+
+      - name: Generate formula and push
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          V="$INPUT_VERSION"
+          if [ -z "$V" ]; then
+            V=$(gh release view --repo seanpoyner/liteforge --json tagName --jq '.tagName' | sed 's/^v//')
+          fi
+          echo "Syncing tap to forge-cli $V"
+          B="https://github.com/seanpoyner/liteforge/releases/download/v$V"
+          arm=$(curl -fsSL "$B/forge-cli-aarch64-apple-darwin.tar.gz"  | sha256sum | cut -d' ' -f1)
+          intel=$(curl -fsSL "$B/forge-cli-x86_64-apple-darwin.tar.gz" | sha256sum | cut -d' ' -f1)
+          linux=$(curl -fsSL "$B/forge-cli-x86_64-unknown-linux-gnu.tar.gz" | sha256sum | cut -d' ' -f1)
+
+          mkdir -p tap/Formula
+          cat > tap/Formula/forge-cli.rb <<RUBY
+          class ForgeCli < Formula
+            desc "LiteForge CLI for AI development (forge)"
+            homepage "https://github.com/seanpoyner/liteforge"
+            version "$V"
+            license "MIT"
+
+            on_macos do
+              on_arm do
+                url "$B/forge-cli-aarch64-apple-darwin.tar.gz"
+                sha256 "$arm"
+              end
+              on_intel do
+                url "$B/forge-cli-x86_64-apple-darwin.tar.gz"
+                sha256 "$intel"
+              end
+            end
+
+            on_linux do
+              url "$B/forge-cli-x86_64-unknown-linux-gnu.tar.gz"
+              sha256 "$linux"
+            end
+
+            def install
+              bin.install "forge"
+            end
+
+            test do
+              assert_match "forge", shell_output("#{bin}/forge --version")
+            end
+          end
+          RUBY
+
+          cd tap
+          git config user.name "liteforge-ci"
+          git config user.email "ci@users.noreply.github.com"
+          git add Formula/forge-cli.rb
+          if git diff --cached --quiet; then
+            echo "Formula already at $V — nothing to push."
+          else
+            git commit -m "forge-cli $V"
+            git push
+            echo "Pushed forge-cli $V to the tap."
+          fi
