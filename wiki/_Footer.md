@@ -1,0 +1,2 @@
+**LiteForge** · MIT licensed · [Repo](https://github.com/seanpoyner/liteforge) · [crates.io](https://crates.io/crates/liteforge) · [PyPI](https://pypi.org/project/liteforge/) · [npm](https://www.npmjs.com/package/@seanpoyner/liteforge) · [docs.rs](https://docs.rs/liteforge)
+<br/><sub>This wiki is generated from <a href="https://github.com/seanpoyner/liteforge/tree/main/wiki"><code>wiki/</code></a> in the main repo — edit there and run <code>scripts/sync-wiki.sh</code>. See <a href="Contributing">Contributing</a>.</sub>
