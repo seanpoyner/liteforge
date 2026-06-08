@@ -76,3 +76,6 @@ null
 
 # Build output (wheels/sdist) - never commit; built fresh in CI
 dist/
+
+# Temp clone used by scripts/sync-wiki.sh
+.wiki-sync/
