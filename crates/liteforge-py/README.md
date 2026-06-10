@@ -417,4 +417,4 @@ See [`examples/python/`](../../examples/python/) for full working examples:
 
 ## Full Documentation
 
-See the [MkDocs site](https://emerging-tech.github.io/liteforge/) for complete API reference and guides.
+See the [MkDocs site](https://seanpoyner.github.io/liteforge/) for complete API reference and guides.

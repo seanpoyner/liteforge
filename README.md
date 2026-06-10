@@ -616,7 +616,7 @@ npm run build
 | [`liteforge-js`](crates/liteforge-js/) | JavaScript/TypeScript bindings -- 25 modules | [README](crates/liteforge-js/README.md) |
 | [`forge-cli`](crates/forge-cli/) | CLI binary -- 14 subcommands + ADK + serve | [README](crates/forge-cli/README.md) |
 
-Full documentation: [https://emerging-tech.github.io/liteforge/](https://emerging-tech.github.io/liteforge/)
+Full documentation: [https://seanpoyner.github.io/liteforge/](https://seanpoyner.github.io/liteforge/)
 
 ## Contributing
 

@@ -267,4 +267,4 @@ cargo build --release -p forge-cli
 
 ## Full Documentation
 
-See the [CLI Reference](../../docs/cli.md) and the [MkDocs site](https://emerging-tech.github.io/liteforge/) for detailed command documentation.
+See the [CLI Reference](../../docs/cli.md) and the [MkDocs site](https://seanpoyner.github.io/liteforge/) for detailed command documentation.

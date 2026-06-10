@@ -1,8 +1,8 @@
 site_name: LiteForge (Rust)
 site_description: High-performance Rust SDK for building LLM applications, with Python and JavaScript/TypeScript bindings
-site_url: https://emerging-tech.github.io/liteforge/
+site_url: https://seanpoyner.github.io/liteforge/
 repo_url: https://github.com/seanpoyner/liteforge
-repo_name: emerging-tech/liteforge
+repo_name: seanpoyner/liteforge
 
 theme:
   name: material

@@ -57,7 +57,7 @@ If you have the [GitHub CLI](https://cli.github.com/) (`gh`) authenticated, you 
 ```powershell
 # Create install directory and download binary
 mkdir -Force $env:USERPROFILE\.forge\bin | Out-Null
-gh release download v0.1.0 --repo emerging-tech/liteforge --pattern "forge.exe" -D $env:USERPROFILE\.forge\bin
+gh release download v0.1.0 --repo seanpoyner/liteforge --pattern "forge.exe" -D $env:USERPROFILE\.forge\bin
 
 # Add to PATH (current session)
 $env:PATH = "$env:USERPROFILE\.forge\bin;$env:PATH"
@@ -74,7 +74,7 @@ forge --version
 ```bash
 # Create install directory and download binary
 mkdir -p ~/.forge/bin
-gh release download v0.1.0 --repo emerging-tech/liteforge --pattern "forge-cli-x86_64-unknown-linux-gnu.tar.gz" --output - | tar -xz -C ~/.forge/bin
+gh release download v0.1.0 --repo seanpoyner/liteforge --pattern "forge-cli-x86_64-unknown-linux-gnu.tar.gz" --output - | tar -xz -C ~/.forge/bin
 
 # Add to PATH
 echo 'export PATH="$HOME/.forge/bin:$PATH"' >> ~/.bashrc  # or ~/.zshrc
