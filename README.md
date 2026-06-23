@@ -231,6 +231,27 @@ let pipeline = RagPipelineBuilder::new(client)
     .build();
 ```
 
+### Model Routing
+
+Native LiteLLM-style routing (opt-in via the `model-routing` feature). Layer 1 load
+balances across deployments with health-aware strategies, cooldowns, and fallbacks;
+Layer 2 selects *which* model a prompt should use - semantic (by content), a native
+port of RouteLLM's matrix-factorization quality router, or a remote classifier.
+
+```rust
+use liteforge::routing::Router;
+
+let router = Router::from_yaml_file("router.yaml")?;       // model_list + selector
+let completion = router.chat_completions(request).await?;  // load-balanced + routed
+```
+
+```bash
+forge route test "prove this theorem" --router router.yaml   # see where it routes
+forge serve --router router.yaml                             # routing proxy
+```
+
+See the [Model Routing guide](docs/guides/model-routing.md) for the full config schema.
+
 ### Guardrails
 
 > **Note:** The PII and prompt-injection guardrails are heuristic (pattern and

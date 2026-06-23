@@ -131,6 +131,9 @@ mod tests {
         let cfg = d.to_config(&base());
         assert_eq!(cfg.api_key.as_deref(), Some("dep-key"));
         assert_eq!(cfg.timeout, Duration::from_secs(5));
-        assert_eq!(cfg.default_headers.get("X-Tenant").map(String::as_str), Some("acme"));
+        assert_eq!(
+            cfg.default_headers.get("X-Tenant").map(String::as_str),
+            Some("acme")
+        );
     }
 }

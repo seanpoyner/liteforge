@@ -17,7 +17,13 @@ pub fn decision_key(selector: &str, prompt: &str, catalog_sig: &str) -> u64 {
     const OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
     const PRIME: u64 = 0x0000_0100_0000_01b3;
     let mut h = OFFSET;
-    for part in [selector.as_bytes(), b"\x1f", prompt.as_bytes(), b"\x1f", catalog_sig.as_bytes()] {
+    for part in [
+        selector.as_bytes(),
+        b"\x1f",
+        prompt.as_bytes(),
+        b"\x1f",
+        catalog_sig.as_bytes(),
+    ] {
         for &b in part {
             h ^= b as u64;
             h = h.wrapping_mul(PRIME);

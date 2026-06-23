@@ -163,7 +163,14 @@ impl ModelRoutingConfig {
         let cfg = self.embedding.as_ref().ok_or_else(|| {
             ForgeError::config("model_routing.embedding is required for this selector")
         })?;
-        Ok(Arc::new(EmbeddingSource::new(cfg)?))
+        // Allow overriding the embedding endpoint from the environment.
+        let mut cfg = cfg.clone();
+        if let Ok(url) = std::env::var("FORGE_ROUTER_EMBEDDING_BASE_URL") {
+            if !url.is_empty() {
+                cfg.base_url = url;
+            }
+        }
+        Ok(Arc::new(EmbeddingSource::new(&cfg)?))
     }
 
     fn classifier_client(&self) -> AsyncForgeClient {
@@ -209,8 +216,13 @@ impl ModelRoutingConfig {
                 on_error,
             } => {
                 let embedder = self.embedder()?;
+                // FORGE_ROUTER_WEIGHTS overrides the configured weights path.
+                let resolved_path = std::env::var("FORGE_ROUTER_WEIGHTS")
+                    .ok()
+                    .filter(|s| !s.is_empty())
+                    .unwrap_or_else(|| weights_path.clone());
                 let built = MfSelector::from_file(
-                    weights_path,
+                    &resolved_path,
                     embedder,
                     tier_policy.clone(),
                     self.catalog(),
@@ -242,9 +254,9 @@ impl ModelRoutingConfig {
                     EndpointConfig::Chat { model } => ClassifierEndpoint::Chat {
                         model: model.clone(),
                     },
-                    EndpointConfig::Custom { path } => ClassifierEndpoint::Custom {
-                        path: path.clone(),
-                    },
+                    EndpointConfig::Custom { path } => {
+                        ClassifierEndpoint::Custom { path: path.clone() }
+                    }
                 };
                 let mut sel =
                     RemoteClassifierSelector::new(client, endpoint, label_to_group.clone());

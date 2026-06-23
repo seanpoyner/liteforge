@@ -72,7 +72,8 @@ impl DeploymentHealth {
 
         let sample = latency.as_micros() as f64;
         if !self.ewma_initialized.swap(true, Ordering::AcqRel) {
-            self.ewma_latency_us.store(sample.to_bits(), Ordering::Release);
+            self.ewma_latency_us
+                .store(sample.to_bits(), Ordering::Release);
             return;
         }
         // CAS loop blending the new sample into the EWMA.

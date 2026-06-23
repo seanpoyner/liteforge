@@ -9,9 +9,7 @@ use serde::{Deserialize, Serialize};
 
 /// Capability/cost tier, ordered low to high. The `Ord` derive gives tier
 /// comparison for free (used by the MF tier policy).
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum CapabilityTier {
     /// Smallest / cheapest tier.
@@ -130,7 +128,11 @@ mod tests {
             ModelGroup::new("cheap", CapabilityTier::Small),
             ModelGroup::new("balanced", CapabilityTier::Medium),
         ]);
-        let ordered: Vec<&str> = cat.ordered_by_tier().iter().map(|g| g.name.as_str()).collect();
+        let ordered: Vec<&str> = cat
+            .ordered_by_tier()
+            .iter()
+            .map(|g| g.name.as_str())
+            .collect();
         assert_eq!(ordered, vec!["cheap", "balanced", "premium"]);
         assert_eq!(
             cat.tiers_present(),

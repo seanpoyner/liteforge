@@ -93,7 +93,10 @@ impl Router {
     /// Build a router from a YAML file path.
     pub fn from_yaml_file(path: impl AsRef<Path>) -> Result<Self> {
         let yaml = std::fs::read_to_string(path.as_ref()).map_err(|e| {
-            ForgeError::config(format!("could not read router file {:?}: {e}", path.as_ref()))
+            ForgeError::config(format!(
+                "could not read router file {:?}: {e}",
+                path.as_ref()
+            ))
         })?;
         Self::from_yaml_str(&yaml)
     }
@@ -357,7 +360,8 @@ impl Router {
 
                 let guard = health.start_owned();
                 let started = Instant::now();
-                let opened = transport::request_stream(client, &cfg, "/chat/completions", &dreq).await;
+                let opened =
+                    transport::request_stream(client, &cfg, "/chat/completions", &dreq).await;
 
                 match opened {
                     Ok(stream) => {
