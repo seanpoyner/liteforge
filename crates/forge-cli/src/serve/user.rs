@@ -116,9 +116,15 @@ async fn chat_completions(
     }
 
     let streaming = req.stream.unwrap_or(false);
+    let strategy = state.router.as_ref().map(|r| r.strategy_name());
 
     if streaming {
-        match state.client.chat_completions_stream(sdk_req).await {
+        // Route through the model router when configured, else the plain client.
+        let opened = match &state.router {
+            Some(r) => r.chat_completions_stream(sdk_req).await,
+            None => state.client.chat_completions_stream(sdk_req).await,
+        };
+        match opened {
             Ok(stream) => {
                 let sse_stream = stream.map(|chunk_result| match chunk_result {
                     Ok(chunk) => {
@@ -133,20 +139,37 @@ async fn chat_completions(
                 }));
 
                 let body = Body::from_stream(body_stream);
-                Ok(Response::builder()
+                let mut builder = Response::builder()
                     .status(200)
                     .header(header::CONTENT_TYPE, "text/event-stream")
-                    .header(header::CACHE_CONTROL, "no-cache")
-                    .body(body)
-                    .unwrap())
+                    .header(header::CACHE_CONTROL, "no-cache");
+                if let Some(s) = strategy {
+                    builder = builder.header("x-forge-strategy", s);
+                }
+                Ok(builder.body(body).unwrap())
             }
             Err(_) => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
-        match state.client.chat_completions(sdk_req).await {
+        let completed = match &state.router {
+            Some(r) => r.chat_completions(sdk_req).await,
+            None => state.client.chat_completions(sdk_req).await,
+        };
+        match completed {
             Ok(completion) => {
+                let routed_model = completion.model.clone();
                 let json = serde_json::to_value(&completion).unwrap_or_default();
-                Ok(Json(json).into_response())
+                let mut resp = Json(json).into_response();
+                if strategy.is_some() {
+                    if let Ok(v) = header::HeaderValue::from_str(&routed_model) {
+                        resp.headers_mut().insert("x-forge-routed-model", v);
+                    }
+                    if let Some(s) = strategy {
+                        resp.headers_mut()
+                            .insert("x-forge-strategy", header::HeaderValue::from_static(s));
+                    }
+                }
+                Ok(resp)
             }
             Err(_) => Err(StatusCode::BAD_GATEWAY),
         }
