@@ -19,6 +19,11 @@ pub enum ClassifierEndpoint {
     Chat {
         /// The classifier model id.
         model: String,
+        /// When true, forward the request's full message list to the classifier
+        /// (so it sees codebase context), instead of injecting a JSON-instruction
+        /// system prompt plus the last user message. Use for dedicated classifier
+        /// models such as the panel router.
+        forward_messages: bool,
     },
     /// A custom HTTP path that returns the classifier JSON directly.
     Custom {
@@ -144,12 +149,18 @@ impl ModelSelector for RemoteClassifierSelector {
         }
 
         let resp = match &self.endpoint {
-            ClassifierEndpoint::Chat { model } => {
-                let req = ChatCompletionRequest::new(
-                    model,
-                    vec![Message::system(SYSTEM_PROMPT), Message::user(text.clone())],
-                )
-                .temperature(0.0);
+            ClassifierEndpoint::Chat {
+                model,
+                forward_messages,
+            } => {
+                let messages = if *forward_messages {
+                    // Send the original request messages so the classifier sees
+                    // the full prompt + codebase context.
+                    ctx.request.messages.clone()
+                } else {
+                    vec![Message::system(SYSTEM_PROMPT), Message::user(text.clone())]
+                };
+                let req = ChatCompletionRequest::new(model, messages).temperature(0.0);
                 let completion = self.client.chat_completions(req).await?;
                 let content = completion
                     .content()
@@ -212,6 +223,7 @@ mod tests {
             }),
             ClassifierEndpoint::Chat {
                 model: "bert".into(),
+                forward_messages: false,
             },
             l2g,
         );
