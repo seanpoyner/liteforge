@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "embedding_model": "synthetic-test",
+  "text_dim": 2,
+  "d": 2,
+  "num_classes": 2,
+  "strong_row": [1.0, 0.0],
+  "weak_row": [0.0, 1.0],
+  "use_proj": false,
+  "proj_w": null,
+  "proj_b": null,
+  "cls_w": [1.0, 0.0, 0.0, 1.0],
+  "cls_b": [0.0, 0.0],
+  "strong_class": 0,
+  "weak_class": 1
+}

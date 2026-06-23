@@ -29,6 +29,7 @@ tokio-rustls = { version = "0.26", default-features = false, features = ["aws_lc
 # Serialization
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+serde_yaml = "0.9"
 
 # Bytes
 bytes = "1"

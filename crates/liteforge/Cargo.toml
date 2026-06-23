@@ -5,12 +5,13 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 description = "Rust SDK for LiteForge - LLM completions via OpenAI-compatible API"
-
-[[example]]
-name = "test_models"
-path = "examples/test_models.rs"
 keywords = ["llm", "ai", "openai", "bedrock", "anthropic"]
 categories = ["api-bindings", "asynchronous"]
+
+[[example]]
+name = "routing"
+path = "examples/routing.rs"
+required-features = ["model-routing"]
 
 [dependencies]
 reqwest = { workspace = true }
@@ -30,6 +31,9 @@ unicode-segmentation = "1.10"
 once_cell = "1"
 humantime-serde = "1"
 
+# Optional routing deps — pulled in only when the routing features are enabled.
+serde_yaml = { workspace = true, optional = true }
+
 # Optional OTel deps — pulled in only when `otel` feature is enabled.
 opentelemetry = { workspace = true, optional = true }
 opentelemetry_sdk = { workspace = true, optional = true }
@@ -45,6 +49,13 @@ tempfile = "3"
 
 [features]
 default = []
+# Layer-1 load-balancing router (deployments, strategies, fallbacks, cooldowns)
+# plus the Layer-2 `ModelSelector` seam. YAML config parsing pulls serde_yaml.
+routing = ["dep:serde_yaml"]
+# Layer-2 content/quality selectors (semantic, RouteLLM MF, remote classifier).
+# Implies `routing`. No heavy ML deps: embeddings are fetched over HTTP and the
+# MF forward pass is plain linear algebra over Vec<f32>.
+model-routing = ["routing"]
 # Adds OTel propagation, span emission, and OTLP export. Off by default
 # so callers that don't want the deps (CLI, embedded uses) keep a small
 # build. Enable with `--features otel`.
