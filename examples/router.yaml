@@ -1,0 +1,93 @@
+# LiteForge model-routing config (LiteLLM-compatible).
+#
+# Two layers:
+#   - model_list + router_settings : Layer-1 load balancing / fallback / cooldown
+#   - model_routing                : Layer-2 content/quality selection
+#
+# Model ids below are examples from a LiteLLM gateway; adjust to your own.
+# Use `forge route test "<prompt>" --router examples/router.yaml` to see where a
+# prompt routes, and `forge serve --router examples/router.yaml` to run the proxy.
+
+model_list:
+  # --- premium / frontier tier ---
+  - model_name: premium
+    litellm_params:
+      model: claude-opus-4.7
+      api_base: https://litellm.poyner.ai/v1
+      api_key: os.environ/LITEFORGE_API_KEY
+      weight: 1
+  - model_name: premium
+    litellm_params:
+      model: gpt-5.2-pro
+      api_base: https://litellm.poyner.ai/v1
+      api_key: os.environ/LITEFORGE_API_KEY
+      weight: 1
+
+  # --- balanced / medium tier ---
+  - model_name: balanced
+    litellm_params:
+      model: claude-sonnet-4.6
+      api_base: https://litellm.poyner.ai/v1
+      api_key: os.environ/LITEFORGE_API_KEY
+
+  # --- cheap / small tier ---
+  - model_name: cheap
+    litellm_params:
+      model: claude-haiku-4.5
+      api_base: https://litellm.poyner.ai/v1
+      api_key: os.environ/LITEFORGE_API_KEY
+      weight: 2
+  - model_name: cheap
+    litellm_params:
+      model: gemini-3-flash
+      api_base: https://litellm.poyner.ai/v1
+      api_key: os.environ/LITEFORGE_API_KEY
+      weight: 1
+
+router_settings:
+  routing_strategy: latency-based-routing
+  allowed_fails: 3
+  cooldown_time: 60s
+  num_retries: 3
+  fallbacks:
+    - premium: [balanced, cheap]
+    - balanced: [cheap]
+
+model_routing:
+  embedding:
+    base_url: https://litellm.poyner.ai/v1
+    model: bge-m3
+    dimensions: 1024
+    # api_key falls back to LITEFORGE_API_KEY
+
+  groups:
+    - { name: premium,  tier: Frontier, models: [claude-opus-4.7, gpt-5.2-pro] }
+    - { name: balanced, tier: Medium,   models: [claude-sonnet-4.6] }
+    - { name: cheap,    tier: Small,    models: [claude-haiku-4.5, gemini-3-flash] }
+
+  selector:
+    # Route by predicted prompt difficulty using the native RouteLLM MF port.
+    kind: mf
+    weights_path: ./mf_weights.json    # produced by scripts/retrain_mf.py on hal
+    tier_policy:
+      thresholds: [0.34, 0.66]         # 3 tiers: cheap < balanced < premium
+      direction: higher_is_harder
+    cache:
+      capacity: 4096
+      ttl_secs: 300
+    on_error: static                   # if weights missing, fall back to passthrough
+
+  # Alternative selectors (swap `selector.kind` above):
+  #
+  # kind: semantic
+  # default_group: balanced
+  # threshold: 0.35
+  # routes:
+  #   - group: cheap
+  #     utterances: ["hi", "what time is it", "thanks", "summarize this"]
+  #   - group: premium
+  #     utterances: ["prove this theorem", "refactor this 2k-line module", "design a distributed system"]
+  #
+  # kind: remote_classifier
+  # endpoint: { kind: chat, model: router-bert }   # served on hal via LiteLLM
+  # label_to_group: { hard: premium, medium: balanced, easy: cheap }
