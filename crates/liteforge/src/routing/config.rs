@@ -119,7 +119,9 @@ impl RouterFileConfig {
         let mut out = HashMap::new();
         for entry in &self.router_settings.fallbacks {
             for (k, v) in entry {
-                out.entry(k.clone()).or_insert_with(Vec::new).extend(v.clone());
+                out.entry(k.clone())
+                    .or_insert_with(Vec::new)
+                    .extend(v.clone());
             }
         }
         out
@@ -199,7 +201,10 @@ model_routing:
             Some(RoutingStrategy::LatencyBased)
         );
         assert_eq!(cfg.router_settings.allowed_fails, Some(5));
-        assert_eq!(cfg.router_settings.cooldown_time, Some(Duration::from_secs(90)));
+        assert_eq!(
+            cfg.router_settings.cooldown_time,
+            Some(Duration::from_secs(90))
+        );
 
         let deps = cfg.deployments().expect("deployments");
         assert_eq!(deps.len(), 2);

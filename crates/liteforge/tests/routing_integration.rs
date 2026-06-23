@@ -194,7 +194,9 @@ async fn concurrent_requests_are_safe() {
     let mut handles = Vec::new();
     for _ in 0..25 {
         let r = Arc::clone(&router);
-        handles.push(tokio::spawn(async move { r.chat_completions(req("g")).await }));
+        handles.push(tokio::spawn(
+            async move { r.chat_completions(req("g")).await },
+        ));
     }
     for h in handles {
         assert_eq!(h.await.unwrap().unwrap().content(), Some("hi"));
