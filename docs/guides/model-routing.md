@@ -88,7 +88,17 @@ sibling deployment, then to a fallback group, within the `num_retries` budget.
   and buckets it across capability tiers (`TierPolicy`) for N-way routing. The MF
   weights are retrained for your embedding model (see below).
 - **`remote_classifier`** - call a BERT/causal classifier served behind LiteLLM and
-  map its labels to model groups.
+  map its labels to model groups. A ready-made fine-tuned classifier service lives in
+  `scripts/router-svc/` (a ~4.4M-param BERT-style 3-class difficulty classifier served
+  OpenAI-compatibly); train it with `scripts/train_router_clf.py` and register it in
+  LiteLLM as `router-bert`. Config:
+
+  ```yaml
+  selector:
+    kind: remote_classifier
+    endpoint: { kind: chat, model: router-bert }
+    label_to_group: { easy: cheap, medium: balanced, hard: premium }
+  ```
 
 All selectors fetch embeddings over HTTP (no local ML inference) and share an
 optional decision cache to keep repeated decisions off the network hot path.
