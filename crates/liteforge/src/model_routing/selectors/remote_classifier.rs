@@ -112,9 +112,10 @@ impl RemoteClassifierSelector {
         let mut out: Vec<ScoredGroup> = scores
             .into_iter()
             .filter_map(|(label, score)| {
-                self.label_to_group
-                    .get(&label)
-                    .map(|group| ScoredGroup::new(group, score).with_reason(format!("classifier label '{label}'")))
+                self.label_to_group.get(&label).map(|group| {
+                    ScoredGroup::new(group, score)
+                        .with_reason(format!("classifier label '{label}'"))
+                })
             })
             .collect();
         out.sort_by(|a, b| {
@@ -157,7 +158,9 @@ impl ModelSelector for RemoteClassifierSelector {
             }
             ClassifierEndpoint::Custom { path } => {
                 let body = serde_json::json!({ "input": text });
-                self.client.post::<_, ClassifierResponse>(path, &body).await?
+                self.client
+                    .post::<_, ClassifierResponse>(path, &body)
+                    .await?
             }
         };
 

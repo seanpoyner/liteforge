@@ -29,8 +29,14 @@ async fn main() -> liteforge::Result<()> {
     let selector = SemanticSelector::build(
         embedder,
         vec![
-            SemanticRoute::new("premium", vec!["refactor this module".into(), "fix this bug".into()]),
-            SemanticRoute::new("balanced", vec!["write a poem".into(), "tell a story".into()]),
+            SemanticRoute::new(
+                "premium",
+                vec!["refactor this module".into(), "fix this bug".into()],
+            ),
+            SemanticRoute::new(
+                "balanced",
+                vec!["write a poem".into(), "tell a story".into()],
+            ),
         ],
         Some("cheap".into()),
         0.5,
@@ -46,7 +52,11 @@ async fn main() -> liteforge::Result<()> {
         .base_config(base)
         .strategy(RoutingStrategy::RoundRobin)
         .add_deployment("premium", "claude-opus-4.7", "https://litellm.poyner.ai/v1")
-        .add_deployment("balanced", "claude-sonnet-4.6", "https://litellm.poyner.ai/v1")
+        .add_deployment(
+            "balanced",
+            "claude-sonnet-4.6",
+            "https://litellm.poyner.ai/v1",
+        )
         .add_deployment("cheap", "claude-haiku-4.5", "https://litellm.poyner.ai/v1")
         .fallback("premium", vec!["balanced".into(), "cheap".into()])
         .build()?
