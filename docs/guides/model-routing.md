@@ -100,6 +100,20 @@ sibling deployment, then to a fallback group, within the `num_retries` budget.
     label_to_group: { easy: cheap, medium: balanced, hard: premium }
   ```
 
+  For a richer, code-aware classifier, `scripts/panel-svc/` runs a **panel of four
+  independent tiny BERT experts** (task type, difficulty, reasoning depth, context
+  demand) plus structured codebase-context features (token count, file count,
+  has-code/diff/error), fused by a learned matrix into **capability groups**
+  (chat / code / reasoning / long_context / general). Set `forward_messages: true`
+  so the full prompt + codebase context reaches the classifier:
+
+  ```yaml
+  selector:
+    kind: remote_classifier
+    endpoint: { kind: chat, model: router-panel, forward_messages: true }
+    label_to_group: { chat: chat, code: code, reasoning: reasoning, long_context: long_context, general: general }
+  ```
+
 All selectors fetch embeddings over HTTP (no local ML inference) and share an
 optional decision cache to keep repeated decisions off the network hot path.
 

@@ -83,6 +83,10 @@ pub enum EndpointConfig {
     Chat {
         /// The classifier model id.
         model: String,
+        /// Forward the full request messages (codebase context) to the classifier
+        /// instead of a JSON-instruction prompt. Default false.
+        #[serde(default)]
+        forward_messages: bool,
     },
     /// A custom HTTP path.
     Custom {
@@ -251,8 +255,12 @@ impl ModelRoutingConfig {
             } => {
                 let client = self.classifier_client();
                 let endpoint = match endpoint {
-                    EndpointConfig::Chat { model } => ClassifierEndpoint::Chat {
+                    EndpointConfig::Chat {
+                        model,
+                        forward_messages,
+                    } => ClassifierEndpoint::Chat {
                         model: model.clone(),
+                        forward_messages: *forward_messages,
                     },
                     EndpointConfig::Custom { path } => {
                         ClassifierEndpoint::Custom { path: path.clone() }
