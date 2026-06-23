@@ -10,6 +10,7 @@ pub mod guardrails;
 pub mod infra;
 pub mod mcp;
 pub mod models;
+pub mod route;
 pub mod serve;
 pub mod tools;
 pub mod usage;
