@@ -173,6 +173,16 @@ enum Command {
     ///   forge serve --user-port 9000   # override user port
     Serve(commands::serve::ServeArgs),
 
+    /// Inspect and validate model-routing configs
+    ///
+    /// See where a prompt routes and validate router YAML.
+    ///
+    /// Examples:
+    ///   forge route test "what is 2+2?" --router examples/router.yaml
+    ///   forge route validate --router examples/router.yaml
+    ///   forge route list --router examples/router.yaml
+    Route(commands::route::RouteArgs),
+
     /// Manage infrastructure services
     ///
     /// Start, stop, and monitor observability infrastructure.
@@ -217,6 +227,7 @@ async fn main() {
         Command::Guardrails(args) => commands::guardrails::execute(args).await,
         Command::Mcp(args) => commands::mcp::execute(args).await,
         Command::Serve(args) => commands::serve::execute(args).await,
+        Command::Route(args) => commands::route::execute(args).await,
         Command::Infra(args) => commands::infra::execute(args).await,
         Command::Adk(args) => commands::adk::execute(args).await,
     };

@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use liteforge::knowledge::LocalKnowledgeBackend;
 use liteforge::mcp::McpServerManager;
+use liteforge::routing::Router;
 use liteforge::skills::SkillRegistry;
 use liteforge::tools::{ToolExecutor, ToolRegistry};
 use liteforge::{AsyncForgeClient, KnowledgeClient, ForgeConfig};
@@ -21,6 +22,9 @@ pub struct AppState {
     pub agents: RwLock<Vec<CliAgentConfig>>,
     pub agents_dir: PathBuf,
     pub config: ServeConfig,
+    /// Optional model router. When set, the user-facing `/v1/chat/completions`
+    /// proxy routes through it (Layer-1 load balancing + Layer-2 selection).
+    pub router: Option<Arc<Router>>,
 }
 
 impl AppState {
@@ -28,6 +32,16 @@ impl AppState {
         serve_config: ServeConfig,
         api_key: Option<String>,
         base_url: Option<String>,
+    ) -> Arc<Self> {
+        Self::with_router(serve_config, api_key, base_url, None)
+    }
+
+    /// Like [`new`](Self::new) but with an optional model router attached.
+    pub fn with_router(
+        serve_config: ServeConfig,
+        api_key: Option<String>,
+        base_url: Option<String>,
+        router: Option<Arc<Router>>,
     ) -> Arc<Self> {
         let mut builder = ForgeConfig::builder();
         if let Some(key) = api_key {
@@ -58,6 +72,7 @@ impl AppState {
             agents: RwLock::new(agents),
             agents_dir,
             config: serve_config,
+            router,
         })
     }
 }
