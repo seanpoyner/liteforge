@@ -1,0 +1,288 @@
+\documentclass[11pt]{article}
+
+% ============================================================================
+%  A Native Multi-Signal Model Router for LiteForge
+%  arXiv-style technical report
+% ============================================================================
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[hidelinks]{hyperref}
+\definecolor{linkc}{HTML}{6D28D9}
+\hypersetup{colorlinks=true, linkcolor=linkc, citecolor=linkc, urlcolor=linkc}
+
+\newcommand{\rb}{\textsc{RouterBench}}
+\newcommand{\rl}{\textsc{RouteLLM}}
+\newcommand{\re}{\textsc{RouterEval}}
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\ROUTEREMBAPGR}{0.308}
+\newcommand{\ROUTEREMBSAVED}{21.7}
+
+\title{\textbf{A Native Multi-Signal Model Router for LiteForge:\\
+Tiny Expert Panels, a RouteLLM Port, and an Honest Benchmark Study}}
+\author{Sean Poyner \\ \small LiteForge}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We present the model-routing subsystem of LiteForge, an open-source LLM SDK. The
+router has two composable layers: a Layer-1 load balancer (deployments, strategies,
+health-aware cooldowns, fallbacks) and a Layer-2 content/quality selector. For
+Layer 2 we contribute (i) a native, dependency-light port of \rl{}'s
+matrix-factorization (MF) quality router, and (ii) a \emph{panel} router: four
+independent tiny BERT experts (task type, difficulty, reasoning depth, context
+demand) plus structured codebase-context features, combined by a learned fusion
+matrix into capability groups. All components are small (each expert is a 4.4M
+parameter \code{bert-tiny}) and serve behind an OpenAI-compatible gateway. We then
+run an honest benchmark study on \rb{}. Our central finding is a cautionary one:
+classifiers trained on synthetic routing data, and even small encoders fine-tuned
+from scratch on real routing labels, transfer poorly to \rb{}'s cost-quality task,
+hovering near the random baseline. A lightweight logistic head over strong
+pretrained \code{bge-m3} embeddings is the only small router that meaningfully beats
+random, consistent with \rl{}'s own findings and with our MF design. We release the
+full training and evaluation harness.
+\end{abstract}
+
+\section{Introduction}
+Serving large language models forces a cost-quality trade-off: the strongest models
+are many times more expensive than competent cheap ones, yet most queries do not
+need the strongest model. \emph{Model routing} sends each query to an appropriate
+model. We describe a production router built natively into LiteForge~\citep{liteforge}
+and, crucially, subject it to a rigorous external benchmark rather than reporting
+only in-distribution numbers.
+
+\paragraph{Contributions.}
+\begin{enumerate}[leftmargin=1.4em,itemsep=2pt]
+\item A two-layer router: LiteLLM-style load balancing~\citep{litellm} plus a
+pluggable content/quality selector, reusing the SDK's transport unchanged.
+\item A native Rust port of \rl{}'s matrix-factorization router~\citep{routellm}
+(no transformer inference; a few matrix multiplies over a remote embedding).
+\item A \emph{panel} router: four independent tiny BERT experts and structured
+codebase-context features fused into capability groups.
+\item An honest benchmark study on \rb{}~\citep{routerbench}: zero-shot transfer of
+synthetic-trained routers, a from-scratch retrain, and an embedding-head retrain,
+with all code released.
+\end{enumerate}
+
+\section{Related Work}
+\rl{}~\citep{routellm} learns to route between a strong and weak model from
+preference data, with four routers (similarity-weighted, matrix factorization, a
+BERT classifier, and a causal-LLM classifier); they recommend matrix factorization
+and report up to 70\% cost reduction at fixed MT-Bench quality. They evaluate with
+the call-performance threshold (CPT) and average performance gain recovered (APGR).
+\rb{}~\citep{routerbench} is the standard cost-quality benchmark: over 30k prompts
+with each of 11 LLMs' correctness and cost plus oracle labels, evaluated with a
+cost-quality area metric. \re{}~\citep{routereval} frames routing as $m$-way
+classification at scale. Semantic routers~\citep{semanticrouter} and LiteLLM's
+auto-router route by embedding similarity to example utterances. Our panel differs
+by decomposing the decision into several independent small classifiers plus explicit
+structured features, then fusing them; this is closest in spirit to $m$-way
+classification routers but with an interpretable signal decomposition.
+
+\section{System Architecture}
+\subsection{Two layers}
+A request carries a logical model name (or the alias \code{auto}). Layer 2 (a
+\code{ModelSelector}) returns a ranked list of model groups; Layer 1 load-balances
+within the top group and falls back down the ranking on failure. The selector trait
+lives in the Layer-1 module so the router can call it without a dependency cycle.
+Layer 1 mints a per-deployment configuration and reuses the SDK's existing HTTP
+transport, so no request-path rewrite was required. Strategies are weighted-shuffle,
+round-robin, least-busy, and latency-based (an exponentially weighted latency
+average); failing deployments are cooled down after a configurable number of
+consecutive failures.
+
+\subsection{The panel router}
+Let a prompt (with any attached codebase context) be $x$. The panel comprises $K{=}4$
+independent classifiers $f_k$, each a fine-tuned \code{bert-tiny} encoder
+(4.4M parameters) producing a probability vector $p_k = f_k(x) \in \Delta^{c_k}$ over
+its label set:
+\begin{itemize}[leftmargin=1.4em,itemsep=1pt]
+\item task type ($c{=}9$: chitchat, qa, code, debug, refactor, math, reasoning, writing, data),
+\item difficulty ($c{=}3$: easy, medium, hard),
+\item reasoning depth ($c{=}2$: shallow, deep),
+\item context demand ($c{=}2$: low, high).
+\end{itemize}
+We also extract a structured feature vector $s(x)\in\mathbb{R}^5$ from the context:
+normalized token count, normalized file count, and binary has-code / has-diff /
+has-error flags. The fusion mapper is a learned linear map $W\in\mathbb{R}^{G\times d}$,
+$b\in\mathbb{R}^G$ over the concatenation
+$z = [\,p_1;p_2;p_3;p_4;s(x)\,]\in\mathbb{R}^{d}$, $d{=}21$, producing capability-group
+scores
+\[
+\mathrm{group}(x) = \operatorname*{arg\,max}_{g\in\mathcal{G}} \;
+\mathrm{softmax}(Wz + b)_g, \qquad
+\mathcal{G}=\{\text{chat, code, reasoning, long\_context, general}\}.
+\]
+The four experts run independently (and in parallel); the fusion is a single
+$21\times5$ matrix, so the whole panel is small and interpretable: each expert and
+feature contributes a named, inspectable signal.
+
+\subsection{Native RouteLLM MF port}
+We port \rl{}'s MF forward pass to dependency-light Rust. For a prompt embedding
+$e$ (from \code{bge-m3}) and a learned per-model row $r_m$:
+\[
+\mathrm{pe} = W_{\text{proj}}^\top e + b_{\text{proj}}, \quad
+\ell_m = W_{\text{cls}}^\top\!\big(\widehat{r_m}\odot \mathrm{pe}\big) + b_{\text{cls}}, \quad
+h(x) = \sigma\!\big(\ell_{\text{strong}} - \ell_{\text{weak}}\big),
+\]
+where $\widehat{\cdot}$ is L2 normalization, $\odot$ the Hadamard product, and $h\in(0,1)$
+a scalar ``hardness''. There is no transformer inference: the embedding is fetched
+over HTTP and the rest is small linear algebra. Because MF is binary, we obtain
+$N$-way routing by bucketing $h$ across the catalog's ordered capability tiers.
+
+\subsection{Serving}
+Each Layer-2 selector can call a classifier served behind the LiteLLM gateway as an
+OpenAI-compatible model. We deploy two: \code{router-bert} (a single difficulty
+classifier) and \code{router-panel} (the full panel returning group scores plus the
+per-signal breakdown). The selector forwards the full message list so codebase
+context reaches the panel.
+
+\section{Training Methodology}
+\paragraph{Synthetic data.} We generate a multi-signal dataset from coherent prompt
+archetypes that jointly set all four signal labels and attach synthetic code, diff,
+error, and file-list context. Each expert trains on prompt$\rightarrow$its own label;
+the fusion trains on (expert one-hots $+$ features)$\rightarrow$ a rule-derived
+capability group. On a held-out synthetic split every expert and the fusion exceed
+99\% accuracy, but this measures only in-distribution separability.
+\paragraph{Retraining on real data.} For the benchmark study we also train routers
+directly on \rb{}: (a) a \code{bert-mini} (11M) encoder fine-tuned from scratch to
+predict per-prompt model success, and (b) a logistic-regression head over frozen
+\code{bge-m3} embeddings, the lightweight embedding-router design that matches our MF
+selector. Both predict whether the weak model suffices; route-to-strong propensity
+is $1-\hat{P}(\text{weak correct})$.
+
+\section{Experimental Setup}
+\paragraph{Benchmark.} \rb{} (0-shot)~\citep{routerbench}: 36{,}497 prompts drawn from
+MMLU, GSM8K, MBPP, HellaSwag, Winogrande, ARC, MT-Bench and others, each with 0/1
+correctness and a cost for 11 LLMs and an oracle column. All quality and cost numbers
+are precomputed, so the study requires no LLM inference.
+\paragraph{Cost-quality protocol.} Following \rl{}, we use a binary strong/weak frame:
+weak $=$ \code{mixtral-8x7b-chat} (mean accuracy 0.548, cost \$1.3$\times10^{-4}$),
+strong $=$ \code{gpt-4-1106-preview} (0.786, \$3.3$\times10^{-3}$). A router emits a
+route-to-strong propensity; sweeping the routed fraction traces a cost-quality curve
+between all-weak and all-strong. We report APGR (area between the router curve and the
+random line, normalized by the oracle) and the cost saved at 95\% of strong-only
+quality, on a stratified 2{,}000-prompt test subsample (seed 13); retrained routers
+are trained on the disjoint remainder.
+\paragraph{Intrinsic protocol.} We derive provenance labels (MMLU/HellaSwag/ARC
+$\rightarrow$ qa; GSM8K $\rightarrow$ math; MBPP $\rightarrow$ code) and a difficulty
+proxy from which model tier first solves each prompt, then measure the panel experts'
+accuracy on 2{,}027 real prompts (an out-of-distribution test of the synthetic-trained
+experts).
+
+\section{Results}
+\subsection{Intrinsic out-of-distribution accuracy}
+Table~\ref{tab:intrinsic} shows the synthetic-trained experts do not transfer to real
+prompts. Coarse task-type accuracy is 0.23 (three classes), and the difficulty experts
+sit near chance. The confusion (Figure~\ref{fig:intrinsic}) is informative: GSM8K word
+problems are read as ``qa'' rather than ``math'' (730/800), because the synthetic math
+archetypes were phrased as ``prove/derive'' statements; MMLU multiple-choice items are
+frequently read as ``code''. The signal decomposition is sound, but the experts learned
+the surface form of the synthetic data.
+
+\begin{table}[h]
+\centering
+\caption{Intrinsic OOD accuracy on real \rb{} prompts (synthetic-trained).}
+\label{tab:intrinsic}
+\begin{tabular}{lcc}
+\toprule
+Expert / signal & Accuracy & Macro-F1 \\
+\midrule
+Task type (coarse, 3-way) & 0.230 & 0.198 \\
+Difficulty (panel) & 0.326 & 0.264 \\
+Difficulty (\code{router-bert}) & 0.235 & 0.139 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{../../scripts/eval/results/figures/intrinsic_confusion.png}
+\caption{Out-of-distribution confusion for the synthetic-trained task-type and
+difficulty experts on real \rb{} prompts.}
+\label{fig:intrinsic}
+\end{figure}
+
+\subsection{RouterBench cost-quality}
+Table~\ref{tab:rb} and Figure~\ref{fig:cq} give the headline result. Zero-shot, every
+synthetic-trained router is near the random baseline (APGR $\approx 0$); the MF port is
+marginally positive (APGR 0.10) because it reasons over pretrained \code{bge-m3}
+embeddings rather than memorized surface form. Fine-tuning a small encoder
+(\code{bert-mini}) from scratch on real routing labels \emph{fails to learn} (training
+loss plateaus at $\ln 2$; APGR $-0.11$). Only the logistic head over frozen
+\code{bge-m3} embeddings meaningfully beats random (APGR \ROUTEREMBAPGR), recovering a
+substantial fraction of the oracle's gain and saving \ROUTEREMBSAVED\% of cost at 95\%
+of strong-only quality.
+
+\begin{table}[h]
+\centering
+\caption{\rb{} cost-quality (strong/weak frame; APGR: 0=random, 1=oracle).}
+\label{tab:rb}
+\begin{tabular}{llcc}
+\toprule
+Router & Training & APGR & Cost saved @95\% strong \\
+\midrule
+\code{router-bert} (difficulty) & synthetic & $-0.358$ & 7.5\% \\
+panel (difficulty signal) & synthetic & $-0.033$ & 10.4\% \\
+MF port & synthetic + bge-m3 & $+0.100$ & 8.6\% \\
+\code{bert-mini} (from scratch) & RouterBench & $-0.107$ & 10.2\% \\
+embedding head (bge-m3) & RouterBench & \ROUTEREMBAPGR & \ROUTEREMBSAVED\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{../../scripts/eval/results/figures/cost_quality.png}
+\caption{\rb{} cost-quality frontier. The oracle is the upper envelope; the dashed
+line is random mixing. Synthetic-trained routers sit near random; the embedding head
+trained on \rb{} climbs toward the oracle.}
+\label{fig:cq}
+\end{figure}
+
+\subsection{Live end-to-end check}
+Routing eight representative prompts through the deployed \code{router-panel} and the
+LiteLLM gateway behaves as designed: greetings and arithmetic route to the chat tier
+(\code{claude-haiku}), code and debugging to the code tier (\code{claude-sonnet}),
+proofs and system design to the reasoning tier (\code{claude-opus}); mean panel
+latency was 934\,ms (one gateway round-trip).
+
+\section{Discussion and Limitations}
+The study is deliberately self-critical. (1) \textbf{Synthetic data does not transfer}:
+high in-distribution accuracy (99\%+) coexists with near-random real-world routing,
+a reminder that router quality must be measured on real cost-quality data, not on the
+training distribution. (2) \textbf{Tiny from-scratch encoders underfit} the routing
+task; capacity and, more importantly, pretrained representations matter. (3)
+\textbf{Embeddings are the workhorse}: a trivial linear head over \code{bge-m3} is the
+only small router that beats random, echoing \rl{}'s finding that matrix factorization
+over embeddings is their best router, and validating our MF design choice. (4) Our
+panel emits abstract capability groups, so the zero-shot \rb{} mapping is approximate;
+the retrained heads route on real labels. (5) Costs are \rb{}'s API-list prices, which
+differ from a local gateway's economics.
+
+\section{Conclusion}
+LiteForge ships a small, interpretable, native model router with a panel of tiny
+experts, a RouteLLM MF port, and load balancing, all behind an OpenAI-compatible
+gateway. Our benchmark study shows that the engineering is sound but that
+\emph{representation}, not classifier head size, determines routing quality: synthetic
+training and from-scratch tiny encoders do not transfer, while a lightweight head over
+strong pretrained embeddings does. Future work: train the panel's experts and fusion
+on real, embedding-based features; calibrate confidence; and route over a richer,
+capability-tagged model pool.
+
+\small
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
