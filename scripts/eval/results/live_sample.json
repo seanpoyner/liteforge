@@ -1,0 +1,114 @@
+[
+  {
+    "prompt": "hey, good evening!",
+    "group": "chat",
+    "signals": {
+      "task_type": "chitchat",
+      "difficulty": "easy",
+      "reasoning_depth": "shallow",
+      "context_demand": "low"
+    },
+    "routed_model": "claude-haiku-4.5",
+    "panel_ms": 1158,
+    "model_ms": 20861,
+    "answer_preview": "Good evening! How's it going? What can I help you with?"
+  },
+  {
+    "prompt": "what is 12 times 8?",
+    "group": "chat",
+    "signals": {
+      "task_type": "qa",
+      "difficulty": "easy",
+      "reasoning_depth": "shallow",
+      "context_demand": "low"
+    },
+    "routed_model": "claude-haiku-4.5",
+    "panel_ms": 1861,
+    "model_ms": 3343,
+    "answer_preview": "12 times 8 is **96**."
+  },
+  {
+    "prompt": "write a python function to check if a string is a palindrome",
+    "group": "code",
+    "signals": {
+      "task_type": "code",
+      "difficulty": "medium",
+      "reasoning_depth": "shallow",
+      "context_demand": "low"
+    },
+    "routed_model": "claude-sonnet-4.6",
+    "panel_ms": 2047,
+    "model_ms": 4610,
+    "answer_preview": "## Palindrome Check Function  Here's a simple and clean Python function to check if a stri"
+  },
+  {
+    "prompt": "refactor this module to remove the global mutex and add tests",
+    "group": "general",
+    "signals": {
+      "task_type": "code",
+      "difficulty": "medium",
+      "reasoning_depth": "deep",
+      "context_demand": "low"
+    },
+    "routed_model": "claude-sonnet-4.6",
+    "panel_ms": 713,
+    "model_ms": 2566,
+    "answer_preview": "I'd be happy to help refactor the module, but I don't see any code attached to your messag"
+  },
+  {
+    "prompt": "prove that the square root of 2 is irrational",
+    "group": "reasoning",
+    "signals": {
+      "task_type": "math",
+      "difficulty": "hard",
+      "reasoning_depth": "deep",
+      "context_demand": "low"
+    },
+    "routed_model": "claude-opus-4.7",
+    "panel_ms": 553,
+    "model_ms": 2088,
+    "answer_preview": "# Proof that \u221a2 is Irrational  **Theorem:** \u221a2 is irrational.  **Proof (by contradiction):"
+  },
+  {
+    "prompt": "design a fault-tolerant consensus protocol and argue its safety",
+    "group": "reasoning",
+    "signals": {
+      "task_type": "reasoning",
+      "difficulty": "hard",
+      "reasoning_depth": "deep",
+      "context_demand": "low"
+    },
+    "routed_model": "claude-opus-4.7",
+    "panel_ms": 337,
+    "model_ms": 1991,
+    "answer_preview": "# Fault-Tolerant Consensus Protocol: **SimpleBFT**  I'll design a Byzantine fault-tolerant"
+  },
+  {
+    "prompt": "summarize the plot of a generic detective novel in two sentences",
+    "group": "general",
+    "signals": {
+      "task_type": "writing",
+      "difficulty": "medium",
+      "reasoning_depth": "shallow",
+      "context_demand": "low"
+    },
+    "routed_model": "claude-sonnet-4.6",
+    "panel_ms": 422,
+    "model_ms": 3146,
+    "answer_preview": "A seasoned but troubled detective is called to investigate a mysterious murder, following "
+  },
+  {
+    "prompt": "debug: my recursion overflows the stack on large inputs, why?",
+    "group": "code",
+    "signals": {
+      "task_type": "math",
+      "difficulty": "medium",
+      "reasoning_depth": "shallow",
+      "context_demand": "low"
+    },
+    "routed_model": "claude-sonnet-4.6",
+    "panel_ms": 383,
+    "model_ms": 2781,
+    "answer_preview": "## Stack Overflow in Recursion  Your recursion overflows because **each recursive call add"
+  }
+]
