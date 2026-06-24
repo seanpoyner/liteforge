@@ -1,0 +1,5 @@
+{
+  "status": "blocked",
+  "reason": "RouteLLM's released MF (routellm/mf_gpt4_augmented) requires OpenAI text-embedding-3-small (1536-dim). On our gateway that model returns OpenAI 'billing_not_active' (429), and no available embedding model matches the checkpoint's space/dims. The reconcile could not be run.",
+  "decision": "Retire the synthetic MF port as a shipped selector. For binary strong/weak routing the bge-m3 embedding head subsumes MF's expressivity and is validated at APGR ~0.31; the MF port's 0.10 reflected synthetic training, and a direct comparison to RouteLLM's checkpoint is infeasible here."
+}
