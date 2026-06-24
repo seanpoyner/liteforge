@@ -1,0 +1,6 @@
+{
+  "note": "Settles the 'ln 2 plateau / capacity matters' claim. The original from-scratch run plateaued at ln 2 due to a training artifact, not capacity.",
+  "original_recipe": {"lr": 5e-4, "epochs": 6, "warmup": 0.0, "held_out_acc": 0.640, "apgr": 0.144, "cost_saved_at_95pct": 14.0},
+  "corrected_recipe": {"lr": 2e-5, "epochs": 10, "warmup": 0.1, "held_out_acc": 0.683, "apgr": 0.281, "cost_saved_at_95pct": 14.6},
+  "conclusion": "bert-mini learns the routing task fine (APGR +0.28, near the embedding head's +0.31) with a standard recipe. The earlier ln-2 plateau was a flaky run, not a capacity ceiling. The embedding head is preferred for deployment economics (one embedding call + linear head, reuses bge-m3), not because tiny encoders cannot learn."
+}
