@@ -1,0 +1,66 @@
+{
+  "n": 2027,
+  "task_type": {
+    "accuracy_coarse": 0.2304,
+    "macro_f1": 0.1983,
+    "confusion": {
+      "qa": {
+        "qa": 308,
+        "code": 465,
+        "math": 27
+      },
+      "code": {
+        "qa": 151,
+        "code": 157,
+        "math": 119
+      },
+      "math": {
+        "qa": 730,
+        "code": 68,
+        "math": 2
+      }
+    }
+  },
+  "difficulty_panel": {
+    "accuracy": 0.3261,
+    "macro_f1": 0.2638,
+    "confusion": {
+      "easy": {
+        "easy": 495,
+        "medium": 536,
+        "hard": 92
+      },
+      "medium": {
+        "easy": 201,
+        "medium": 130,
+        "hard": 74
+      },
+      "hard": {
+        "easy": 168,
+        "medium": 295,
+        "hard": 36
+      }
+    }
+  },
+  "difficulty_router_bert": {
+    "accuracy": 0.2353,
+    "macro_f1": 0.1391,
+    "confusion": {
+      "easy": {
+        "easy": 0,
+        "medium": 51,
+        "hard": 1072
+      },
+      "medium": {
+        "easy": 0,
+        "medium": 8,
+        "hard": 397
+      },
+      "hard": {
+        "easy": 0,
+        "medium": 30,
+        "hard": 469
+      }
+    }
+  }
+}
