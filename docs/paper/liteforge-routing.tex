@@ -243,17 +243,19 @@ prompts outside its training distribution.
 
 \begin{table}[h]
 \centering
-\caption{\rb{} cost-quality (strong/weak frame; APGR: 0=random, 1=oracle).}
+\caption{\rb{} cost-quality (strong/weak frame; APGR: 0=random, 1=oracle).
+``Saved'' is the cost saved at 95\% of strong-only quality.}
 \label{tab:rb}
-\begin{tabular}{llcc}
+\small
+\begin{tabular}{@{}llcc@{}}
 \toprule
-Router & Training & APGR & Cost saved @95\% strong \\
+Router & Training & APGR & Saved \\
 \midrule
 \code{router-bert} (difficulty) & synthetic & $-0.358$ & 7.5\% \\
-panel (difficulty signal) & synthetic & $-0.033$ & 10.4\% \\
-MF port & synthetic + bge-m3 & $+0.100$ & 8.6\% \\
-\code{bert-mini} (from scratch) & RouterBench & $-0.107$ & 10.2\% \\
-\textbf{embedding head (bge-m3, +struct) [default]} & RouterBench & \textbf{\ROUTEREMBAPGR} & \textbf{\ROUTEREMBSAVED\%} \\
+panel (difficulty) & synthetic & $-0.033$ & 10.4\% \\
+MF port & synth.\,+\,bge-m3 & $+0.100$ & 8.6\% \\
+\code{bert-mini} (scratch) & RouterBench & $-0.107$ & 10.2\% \\
+\textbf{embedding head (bge-m3)} \textit{[default]} & RouterBench & $\mathbf{+\ROUTEREMBAPGR}$ & \textbf{\ROUTEREMBSAVED\%} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -271,8 +273,11 @@ trained on \rb{} climbs toward the oracle.}
 Routing eight representative prompts through the deployed \code{router-panel} and the
 LiteLLM gateway behaves as designed: greetings and arithmetic route to the chat tier
 (\code{claude-haiku}), code and debugging to the code tier (\code{claude-sonnet}),
-proofs and system design to the reasoning tier (\code{claude-opus}); mean panel
-latency was 934\,ms (one gateway round-trip).
+proofs and system design to the reasoning tier (\code{claude-opus}). Routing latency
+is dominated by the single embedding call: with \code{bge-m3} pinned resident in Ollama
+(a 10-minute keep-warm timer) and the embedding fetched over the WG-direct gateway
+rather than the public tunnel, the native selector's routing decision is a steady
+$\approx$0.3\,s, down from 5--8\,s when the model cold-loads.
 
 \section{Discussion and Limitations}
 The study is deliberately self-critical. (1) \textbf{Synthetic data does not transfer}:
