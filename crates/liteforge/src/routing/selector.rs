@@ -69,6 +69,22 @@ impl<'a> SelectionContext<'a> {
             .and_then(|m| m.content.clone())
             .unwrap_or_default()
     }
+
+    /// All message contents concatenated, so a selector sees the full prompt plus
+    /// any attached codebase context (used by the embedding-head selector).
+    pub fn full_text(&self) -> String {
+        let parts: Vec<&str> = self
+            .request
+            .messages
+            .iter()
+            .filter_map(|m| m.content.as_deref())
+            .collect();
+        if parts.is_empty() {
+            self.prompt_text()
+        } else {
+            parts.join("\n\n")
+        }
+    }
 }
 
 /// Chooses model groups for a request, in preference order.
