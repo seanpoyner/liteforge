@@ -167,9 +167,9 @@ pub use routing::{
 // Re-export Layer-2 model routing
 #[cfg(feature = "model-routing")]
 pub use model_routing::{
-    CapabilityTier, EmbeddingModelConfig, EmbeddingSource, GroupCatalog, MfSelector, MfWeights,
-    ModelGroup, RemoteClassifierSelector, SelectorConfig, SemanticSelector, StaticSelector,
-    TierPolicy,
+    CapabilityTier, EmbeddingHeadSelector, EmbeddingModelConfig, EmbeddingSource, GroupCatalog,
+    MfSelector, MfWeights, ModelGroup, RemoteClassifierSelector, SelectorConfig, SemanticSelector,
+    StaticSelector, TierPolicy,
 };
 
 // Re-export events

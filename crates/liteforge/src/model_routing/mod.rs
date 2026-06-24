@@ -38,6 +38,7 @@
 pub mod cache;
 pub mod config;
 pub mod embedder;
+pub mod features;
 pub mod group;
 pub mod mf;
 pub mod selectors;
@@ -50,6 +51,6 @@ pub use embedder::{EmbeddingModelConfig, EmbeddingSource};
 pub use group::{CapabilityTier, GroupCatalog, ModelGroup};
 pub use mf::{MfWeights, TierDirection, TierPolicy};
 pub use selectors::{
-    ClassifierEndpoint, ClassifierResponse, MfSelector, RemoteClassifierSelector, SemanticRoute,
-    SemanticSelector, StaticSelector,
+    ClassifierEndpoint, ClassifierResponse, EmbeddingHeadSelector, HeadSpec, MfSelector,
+    RemoteClassifierSelector, SemanticRoute, SemanticSelector, StaticSelector,
 };

@@ -10,8 +10,8 @@ use super::embedder::{EmbeddingModelConfig, EmbeddingSource};
 use super::group::{GroupCatalog, ModelGroup};
 use super::mf::TierPolicy;
 use super::selectors::{
-    ClassifierEndpoint, MfSelector, RemoteClassifierSelector, SemanticRoute, SemanticSelector,
-    StaticSelector,
+    ClassifierEndpoint, EmbeddingHeadSelector, MfSelector, RemoteClassifierSelector, SemanticRoute,
+    SemanticSelector, StaticSelector,
 };
 use crate::client::AsyncForgeClient;
 use crate::config::ForgeConfig;
@@ -143,6 +143,17 @@ pub enum SelectorConfig {
         #[serde(default)]
         cache: Option<CacheConfig>,
     },
+    /// Embedding-head routing (bge-m3 embedding + a tiny learned quality/task head).
+    EmbeddingHead {
+        /// Path to the head-spec JSON (`router-head.json`).
+        weights_path: String,
+        /// Optional decision cache.
+        #[serde(default)]
+        cache: Option<CacheConfig>,
+        /// Behaviour when the head spec is missing/invalid.
+        #[serde(default)]
+        on_error: OnError,
+    },
 }
 
 impl ModelRoutingConfig {
@@ -241,6 +252,35 @@ impl ModelRoutingConfig {
                     Err(e) => match on_error {
                         OnError::Static => {
                             tracing::warn!("MF selector unavailable ({e}); using static selector");
+                            Ok(Box::new(StaticSelector::new()))
+                        }
+                        OnError::Fail => Err(e),
+                    },
+                }
+            }
+
+            SelectorConfig::EmbeddingHead {
+                weights_path,
+                cache,
+                on_error,
+            } => {
+                let embedder = self.embedder()?;
+                let resolved_path = std::env::var("FORGE_ROUTER_WEIGHTS")
+                    .ok()
+                    .filter(|s| !s.is_empty())
+                    .unwrap_or_else(|| weights_path.clone());
+                match EmbeddingHeadSelector::from_file(&resolved_path, embedder) {
+                    Ok(mut sel) => {
+                        if let Some(c) = cache {
+                            sel = sel.with_cache(c.build());
+                        }
+                        Ok(Box::new(sel))
+                    }
+                    Err(e) => match on_error {
+                        OnError::Static => {
+                            tracing::warn!(
+                                "embedding-head selector unavailable ({e}); using static selector"
+                            );
                             Ok(Box::new(StaticSelector::new()))
                         }
                         OnError::Fail => Err(e),

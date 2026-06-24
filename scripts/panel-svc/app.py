@@ -1,11 +1,11 @@
-"""OpenAI-compatible serving shim for the panel router.
+"""OpenAI-compatible serving shim for the router-panel.
 
-POST /v1/chat/completions: concatenates the message contents (so codebase context
-is visible), runs the 4 tiny BERT experts + structured features + fusion matrix,
-and returns capability-group scores as the message content:
+POST /v1/chat/completions: concatenates the message contents (so codebase context is
+visible), embeds via bge-m3, runs the learned quality + task heads + structured
+features, and returns capability-group scores as the message content:
     {"scores": {"chat":..,"code":..,"reasoning":..,"long_context":..,"general":..},
-     "signals": {"task_type":..,"difficulty":..,"reasoning_depth":..,"context_demand":..}}
-LiteForge's remote_classifier selector reads `scores`; `signals` is for observability.
+     "signals": {"hardness":.., "task":..}, "features": {...}}
+LiteForge's remote_classifier selector reads `scores`; the rest is observability.
 """
 import json
 import time
@@ -13,9 +13,9 @@ import time
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from panel_infer import Panel
+from embedding_infer import EmbeddingHead
 
-panel = Panel("/app")
+panel = EmbeddingHead()
 app = FastAPI(title="router-panel")
 
 
@@ -31,13 +31,12 @@ class ChatRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "groups": panel.groups, "signals": list(panel.classes.keys())}
+    return {"status": "ok", "groups": panel.spec.get("groups", []),
+            "embedding_model": panel.spec.get("embedding_model")}
 
 
 @app.post("/v1/chat/completions")
 def chat_completions(req: ChatRequest):
-    # Concatenate all non-empty message contents so the panel sees the full
-    # prompt + codebase context, not just the last user turn.
     parts = [m.content for m in req.messages if m.content]
     text = "\n\n".join(parts) if parts else ""
     scores, signals, feats = panel.classify(text)
