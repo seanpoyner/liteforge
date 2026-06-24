@@ -7,9 +7,9 @@
       "task": "qa"
     },
     "routed_model": "claude-haiku-4.5",
-    "panel_ms": 449,
-    "model_ms": 1016,
-    "answer_preview": "Good evening! It's nice to meet you. How's your day going? Is there anything I can help yo"
+    "panel_ms": 1612,
+    "model_ms": 1142,
+    "answer_preview": "Good evening! It's nice to meet you. How's your day going?"
   },
   {
     "prompt": "what is 12 times 8?",
@@ -19,8 +19,8 @@
       "task": "math"
     },
     "routed_model": "claude-haiku-4.5",
-    "panel_ms": 318,
-    "model_ms": 1015,
+    "panel_ms": 5711,
+    "model_ms": 850,
     "answer_preview": "12 times 8 is **96**."
   },
   {
@@ -31,9 +31,9 @@
       "task": "code"
     },
     "routed_model": "claude-sonnet-4.6",
-    "panel_ms": 6068,
-    "model_ms": 2778,
-    "answer_preview": "## Palindrome Check Function  Here's a Python function to check if a string is a palindrom"
+    "panel_ms": 456,
+    "model_ms": 2394,
+    "answer_preview": "## Palindrome Check Function  Here's a simple Python function to check if a string is a pa"
   },
   {
     "prompt": "refactor this module to remove the global mutex and add tests",
@@ -43,9 +43,9 @@
       "task": "qa"
     },
     "routed_model": "claude-sonnet-4.6",
-    "panel_ms": 7027,
-    "model_ms": 3126,
-    "answer_preview": "I'd be happy to help refactor the module, but I don't see any code attached to your messag"
+    "panel_ms": 417,
+    "model_ms": 2335,
+    "answer_preview": "I'd be happy to help refactor the module, but I don't see any code in your message. Could "
   },
   {
     "prompt": "prove that the square root of 2 is irrational",
@@ -55,9 +55,9 @@
       "task": "qa"
     },
     "routed_model": "claude-sonnet-4.6",
-    "panel_ms": 5539,
-    "model_ms": 7638,
-    "answer_preview": "# Proof that \u221a2 is Irrational  ## Setup  **Definition:** A number is *irrational* if it ca"
+    "panel_ms": 386,
+    "model_ms": 2506,
+    "answer_preview": "# Proof that \u221a2 is Irrational  ## Setup  **Assume for contradiction** that \u221a2 is rational."
   },
   {
     "prompt": "design a fault-tolerant consensus protocol and argue its safety",
@@ -67,9 +67,9 @@
       "task": "qa"
     },
     "routed_model": "claude-sonnet-4.6",
-    "panel_ms": 8027,
-    "model_ms": 3244,
-    "answer_preview": "# Fault-Tolerant Consensus Protocol: **Atlas Consensus**  ## Overview  Atlas is a leader-b"
+    "panel_ms": 408,
+    "model_ms": 4459,
+    "answer_preview": "# Fault-Tolerant Consensus Protocol: **Byzantium**  ## Overview  **Byzantium** is a leader"
   },
   {
     "prompt": "summarize the plot of a generic detective novel in two sentences",
@@ -79,9 +79,9 @@
       "task": "qa"
     },
     "routed_model": "claude-sonnet-4.6",
-    "panel_ms": 5768,
-    "model_ms": 4684,
-    "answer_preview": "A seasoned detective is called to investigate a mysterious murder, uncovering a web of sec"
+    "panel_ms": 1602,
+    "model_ms": 14001,
+    "answer_preview": "A seasoned but troubled detective is called to investigate a mysterious murder, uncovering"
   },
   {
     "prompt": "debug: my recursion overflows the stack on large inputs, why?",
@@ -91,8 +91,8 @@
       "task": "qa"
     },
     "routed_model": "claude-opus-4.7",
-    "panel_ms": 5765,
-    "model_ms": 14126,
-    "answer_preview": "Without seeing your code, I can only give general causes. The most common reasons recursio"
+    "panel_ms": 6478,
+    "model_ms": 3656,
+    "answer_preview": "Without seeing your code, I can only give general reasons. The most common causes of stack"
   }
 ]
