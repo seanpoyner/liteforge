@@ -87,6 +87,11 @@ sibling deployment, then to a fallback group, within the `num_retries` budget.
   matrix-factorization router. It embeds the prompt, predicts a scalar "hardness",
   and buckets it across capability tiers (`TierPolicy`) for N-way routing. The MF
   weights are retrained for your embedding model (see below).
+- **`embedding_head`** - the benchmark-validated default. Routes over frozen `bge-m3`
+  embeddings with a tiny learned quality + task head (one embedding call plus a linear
+  head), trained on real RouterBench data. In our study this was the only small router
+  that beat the random baseline (APGR +0.31, ~22% cost saved at 95% of GPT-4 quality).
+  See `examples/router-embedding-head.yaml` and `scripts/eval/train_router_head.py`.
 - **`remote_classifier`** - call a BERT/causal classifier served behind LiteLLM and
   map its labels to model groups. A ready-made fine-tuned classifier service lives in
   `scripts/router-svc/` (a ~4.4M-param BERT-style 3-class difficulty classifier served

@@ -25,7 +25,8 @@
 \newcommand{\re}{\textsc{RouterEval}}
 \newcommand{\code}[1]{\texttt{\small #1}}
 \newcommand{\ROUTEREMBAPGR}{0.308}
-\newcommand{\ROUTEREMBSAVED}{21.7}
+\newcommand{\ROUTEREMBSAVED}{22.5}
+\newcommand{\TASKHEADACC}{0.993}
 
 \title{\textbf{A Native Multi-Signal Model Router for LiteForge:\\
 Tiny Expert Panels, a RouteLLM Port, and an Honest Benchmark Study}}
@@ -225,6 +226,21 @@ loss plateaus at $\ln 2$; APGR $-0.11$). Only the logistic head over frozen
 substantial fraction of the oracle's gain and saving \ROUTEREMBSAVED\% of cost at 95\%
 of strong-only quality.
 
+\paragraph{Optimization and deployment.} A sweep over \{logistic, MLP\} $\times$
+\{binary weak-suffices, 3-class oracle-tier\} $\times$ \{embedding, embedding+structural\}
+selected by held-out APGR found logistic regression with structural features best
+(APGR \ROUTEREMBAPGR); the MLP overfits at this data scale (APGR $\le 0.12$) and the
+3-class target underperforms binary on the cost-quality curve. A companion task head
+over the same embeddings, trained on RouterBench provenance labels, classifies
+qa/code/math at \TASKHEADACC{} accuracy (versus 0.23 for the synthetic task expert),
+restoring code-aware capability routing. This head is now LiteForge's default router,
+served two ways: a native in-process \code{EmbeddingHeadSelector} (one embedding call
+plus a linear head) and a rebuilt numpy-only \code{router-panel} container behind the
+gateway. The learned quality axis plus cheap policy (triviality, code markers, context
+size) fuses into capability groups; ambiguous prompts default to a mid tier rather
+than the cheapest, since the RouterBench-trained head is unreliable on open-ended
+prompts outside its training distribution.
+
 \begin{table}[h]
 \centering
 \caption{\rb{} cost-quality (strong/weak frame; APGR: 0=random, 1=oracle).}
@@ -237,7 +253,7 @@ Router & Training & APGR & Cost saved @95\% strong \\
 panel (difficulty signal) & synthetic & $-0.033$ & 10.4\% \\
 MF port & synthetic + bge-m3 & $+0.100$ & 8.6\% \\
 \code{bert-mini} (from scratch) & RouterBench & $-0.107$ & 10.2\% \\
-embedding head (bge-m3) & RouterBench & \ROUTEREMBAPGR & \ROUTEREMBSAVED\% \\
+\textbf{embedding head (bge-m3, +struct) [default]} & RouterBench & \textbf{\ROUTEREMBAPGR} & \textbf{\ROUTEREMBSAVED\%} \\
 \bottomrule
 \end{tabular}
 \end{table}
