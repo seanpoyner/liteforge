@@ -56,16 +56,16 @@ def call_model(model, messages, max_tokens, cache_id):
                        "temperature": 0.0}).encode()
     req = urllib.request.Request(BASE.rstrip("/") + "/chat/completions", data=body,
                                  headers={"Authorization": f"Bearer {KEY}", "Content-Type": "application/json"})
-    for attempt in range(4):
+    for attempt in range(7):
         try:
             with urllib.request.urlopen(req, timeout=180) as r:
                 cost_hdr = r.headers.get("x-litellm-response-cost")
                 d = json.load(r)
             break
-        except Exception as e:
-            if attempt == 3:
+        except Exception:
+            if attempt == 6:
                 raise
-            time.sleep(2 ** attempt)
+            time.sleep(min(2 ** attempt, 20))
     text = d["choices"][0]["message"]["content"] or ""
     usage = d.get("usage", {})
     pt, ct = usage.get("prompt_tokens", 0), usage.get("completion_tokens", 0)
@@ -87,7 +87,8 @@ def load_gsm8k(n):
     for i, r in enumerate(ds):
         gold = r["answer"].split("####")[-1].strip().replace(",", "")
         rows.append({"id": f"gsm8k-{i}", "eval_name": "gsm8k", "grade": "numeric", "gold": gold,
-                     "prompt": r["question"] + "\n\nSolve step by step, then end with 'Answer: <number>'."})
+                     "prompt": r["question"] + "\n\nSolve step by step. On the final line write exactly "
+                               "'Answer: <number>' and nothing else."})
     return rows
 
 
@@ -99,7 +100,7 @@ def load_mmlu(n):
     for i, r in enumerate(ds):
         ch = "\n".join(f"{letters[j]}. {c}" for j, c in enumerate(r["choices"]))
         rows.append({"id": f"mmlu-{i}", "eval_name": "mmlu", "grade": "mc", "gold": letters[r["answer"]],
-                     "prompt": f"{r['question']}\n{ch}\n\nReply with only the letter of the correct answer."})
+                     "prompt": f"{r['question']}\n{ch}\n\nOn the final line write exactly 'Answer: <letter>'."})
     return rows
 
 
@@ -111,7 +112,7 @@ def load_arc(n):
         labels = r["choices"]["label"]
         ch = "\n".join(f"{l}. {t}" for l, t in zip(labels, r["choices"]["text"]))
         rows.append({"id": f"arc-{i}", "eval_name": "arc", "grade": "mc", "gold": r["answerKey"],
-                     "prompt": f"{r['question']}\n{ch}\n\nReply with only the letter of the correct answer."})
+                     "prompt": f"{r['question']}\n{ch}\n\nOn the final line write exactly 'Answer: <letter>'."})
     return rows
 
 
@@ -149,18 +150,28 @@ def load_mtbench(n):
 
 # ---------------------------------------------------------------- graders
 def grade_numeric(text, gold):
-    nums = re.findall(r"-?\d[\d,]*\.?\d*", text.replace(",", ""))
-    if not nums:
+    m = re.search(r"Answer:\s*\$?(-?\d[\d,]*\.?\d*)", text, re.I)
+    cand = m.group(1) if m else None
+    if cand is None:
+        nums = re.findall(r"-?\d[\d,]*\.?\d*", text.replace(",", ""))
+        cand = nums[-1] if nums else None
+    if cand is None:
         return 0
     try:
-        return int(abs(float(nums[-1]) - float(gold)) < 1e-4)
+        return int(abs(float(cand.replace(",", "")) - float(gold)) < 1e-4)
     except ValueError:
         return 0
 
 
 def grade_mc(text, gold):
-    m = re.search(r"\b([A-E])\b", text.strip().upper())
-    return int(bool(m) and m.group(1) == gold.upper())
+    m = re.search(r"Answer:\s*\(?([A-E])\)?", text, re.I)
+    if not m:
+        # last standalone capital letter as a fallback
+        cands = re.findall(r"\b([A-E])\b", text.strip().upper())
+        if not cands:
+            return 0
+        return int(cands[-1] == gold.upper())
+    return int(m.group(1).upper() == gold.upper())
 
 
 def _limits():
@@ -189,8 +200,12 @@ def grade_judge(question, answer):
     prompt = (f"[Question]\n{question}\n\n[Assistant Answer]\n{answer}\n\n"
               "Rate the answer's helpfulness and correctness from 1 to 10. "
               "Respond with only 'Rating: <n>'.")
-    r = call_model(JUDGE, [{"role": "user", "content": prompt}], 16,
-                   _key("judge", hashlib.sha1((question + answer).encode()).hexdigest()))
+    try:
+        r = call_model(JUDGE, [{"role": "user", "content": prompt}], 16,
+                       _key("judge", hashlib.sha1((question + answer).encode()).hexdigest()))
+    except Exception as e:
+        print("  judge call failed, scoring 0:", str(e)[:80])
+        return 0, 0.0
     m = re.search(r"(\d+(?:\.\d+)?)", r["text"])
     rating = float(m.group(1)) if m else 0.0
     return int(rating >= 7.0), rating
@@ -231,7 +246,9 @@ def main():
     print(f"loaded {len(prompts)} prompts: "
           + str(pd.Series([p['eval_name'] for p in prompts]).value_counts().to_dict()))
 
-    max_tokens = {"numeric": 768, "mc": 512, "code": 1024, "judge": 1024}
+    # Higher caps so stronger (more verbose) models reach the final answer; the first
+    # run truncated opus/sonnet mid-reasoning, which unfairly penalized them.
+    max_tokens = {"numeric": 1536, "mc": 1024, "code": 1536, "judge": 512}
     from concurrent.futures import ThreadPoolExecutor
 
     # Phase 1: fetch all (prompt, tier) responses concurrently (cached, resumable).
