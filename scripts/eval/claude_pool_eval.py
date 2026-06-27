@@ -26,7 +26,10 @@ from router_runner import MfRunner  # noqa: E402 (reuse its batched bge-m3 embed
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "data")
 RESULTS = os.path.join(HERE, "results")
-WEAK, MID, STRONG = "haiku", "sonnet", "opus"
+# Strong = the QUALITY leader (sonnet), not the most expensive (opus is Pareto-dominated
+# on this workload: lower quality and ~9x the cost).
+WEAK, STRONG = "haiku", "sonnet"
+POOL = os.environ.get("CLAUDE_POOL", os.path.join(DATA, "claude_pool_auto.parquet"))
 
 
 def embed_prompts(prompts):
@@ -62,10 +65,10 @@ def boot_apgr(scores, wq, wc, sq, sc):
 
 
 def main():
-    df = pd.read_parquet(os.path.join(DATA, "claude_pool.parquet")).reset_index(drop=True)
+    df = pd.read_parquet(POOL).reset_index(drop=True)
     print(f"claude_pool: {len(df)} prompts  "
           + str(df["eval_name"].value_counts().to_dict()))
-    for t in (WEAK, MID, STRONG):
+    for t in ("haiku", "sonnet", "opus"):
         print(f"  {t}: acc={df[t].mean():.3f} cost=${df[f'{t}|total_cost'].mean():.5f}")
 
     prompts = df["prompt"].astype(str).str.slice(0, 4000).tolist()

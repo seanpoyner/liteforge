@@ -1,0 +1,209 @@
+{
+  "assumptions": {
+    "volume": {
+      "members": 270000000,
+      "adoption": 0.03,
+      "conv_per_user_mo": 3.0,
+      "turns_per_conv": 4.0
+    },
+    "tokens": {
+      "system": 15000,
+      "rag": 4000,
+      "rag_static_frac": 0.6,
+      "query": 40,
+      "output": 400
+    },
+    "price": {
+      "in": 0.25,
+      "out": 1.5,
+      "cache_read_mult": 0.25
+    },
+    "simple_model": {
+      "name": "gemma4:31b (Vertex, managed)",
+      "in": 0.15,
+      "out": 0.6
+    },
+    "scenarios": {
+      "conservative": {
+        "cache_cov": 0.5,
+        "cache_hit": 0.5,
+        "sys_trim": 0.2,
+        "rag_trim": 0.2,
+        "hist_compact": 0.3,
+        "route_frac": 0.0,
+        "routed_extra": 0.0
+      },
+      "expected": {
+        "cache_cov": 0.75,
+        "cache_hit": 0.8,
+        "sys_trim": 0.4,
+        "rag_trim": 0.35,
+        "hist_compact": 0.6,
+        "route_frac": 0.9,
+        "routed_extra": 0.02
+      },
+      "aggressive": {
+        "cache_cov": 0.9,
+        "cache_hit": 0.95,
+        "sys_trim": 0.6,
+        "rag_trim": 0.5,
+        "hist_compact": 0.8,
+        "route_frac": 1.0,
+        "routed_extra": 0.04
+      }
+    }
+  },
+  "baseline": {
+    "conversations_mo": 24300000.0,
+    "in_per_conv": 78800.0,
+    "out_per_conv": 1600,
+    "usd_per_conv": 0.022099999999999998,
+    "usd_mo": 537030.0,
+    "in_tokens_mo": 1914840000000.0,
+    "out_tokens_mo": 38880000000.0
+  },
+  "scenarios": {
+    "conservative": {
+      "baseline": 537030.0,
+      "after_cache": 457751.25,
+      "after_prune": 376455.6,
+      "after_model": 376455.6,
+      "after_routed": 376455.6,
+      "saved_pct": {
+        "cache": 14.8,
+        "+prune": 29.9,
+        "+model": 29.9,
+        "+routed": 29.9
+      }
+    },
+    "expected": {
+      "baseline": 537030.0,
+      "after_cache": 346761.0,
+      "after_prune": 232113.6,
+      "after_model": 138055.104,
+      "after_routed": 135294.00191999998,
+      "saved_pct": {
+        "cache": 35.4,
+        "+prune": 56.8,
+        "+model": 74.3,
+        "+routed": 74.8
+      }
+    },
+    "aggressive": {
+      "baseline": 537030.0,
+      "after_cache": 265896.675,
+      "after_prune": 144706.5,
+      "after_model": 75159.9,
+      "after_routed": 72153.50399999999,
+      "saved_pct": {
+        "cache": 50.5,
+        "+prune": 73.1,
+        "+model": 86.0,
+        "+routed": 86.6
+      }
+    }
+  },
+  "cache_sweep": [
+    {
+      "hit": 0.5,
+      "usd_mo": 418111.875,
+      "saved_pct": 22.1
+    },
+    {
+      "hit": 0.6,
+      "usd_mo": 394328.25,
+      "saved_pct": 26.6
+    },
+    {
+      "hit": 0.7,
+      "usd_mo": 370544.625,
+      "saved_pct": 31.0
+    },
+    {
+      "hit": 0.8,
+      "usd_mo": 346761.0,
+      "saved_pct": 35.4
+    },
+    {
+      "hit": 0.9,
+      "usd_mo": 322977.375,
+      "saved_pct": 39.9
+    },
+    {
+      "hit": 0.95,
+      "usd_mo": 311085.5625,
+      "saved_pct": 42.1
+    }
+  ],
+  "model_options": [
+    {
+      "model": "Gemini 3.1 Flash-Lite (current, Vertex)",
+      "kind": "managed",
+      "in": 0.25,
+      "out": 1.5,
+      "note": "incumbent; acc 0.858",
+      "blended_per_1m": 0.2749
+    },
+    {
+      "model": "gemma4:31b (Vertex, managed)",
+      "kind": "managed",
+      "in": 0.15,
+      "out": 0.6,
+      "note": "RECOMMENDED: ~42% cheaper, acc 0.866 on-par w/ Flash-Lite",
+      "blended_per_1m": 0.159
+    },
+    {
+      "model": "gemma4:26b-MoE (Vertex, managed)",
+      "kind": "managed",
+      "in": 0.13,
+      "out": 0.5,
+      "note": "~97% of 31B perf; even cheaper (est out)",
+      "blended_per_1m": 0.1374
+    },
+    {
+      "model": "gemma-31b-cloud (Amazon self-host est)",
+      "kind": "selfhost",
+      "blended_per_1m": 4.1832,
+      "note": "owned-compute est; acc 0.865"
+    }
+  ],
+  "in_share": 0.9800995024875622,
+  "tornado": [
+    {
+      "input": "conv_per_user_mo",
+      "low_-30pct": 375920.9999999999,
+      "high_+30pct": 698139.0,
+      "swing": 322218.0000000001
+    },
+    {
+      "input": "adoption",
+      "low_-30pct": 375920.9999999999,
+      "high_+30pct": 698138.9999999999,
+      "swing": 322218.0
+    },
+    {
+      "input": "in_price",
+      "low_-30pct": 393417.0,
+      "high_+30pct": 680643.0,
+      "swing": 287226.0
+    },
+    {
+      "input": "turns_per_conv",
+      "low_-30pct": 398763.0,
+      "high_+30pct": 677970.0,
+      "swing": 279207.0
+    },
+    {
+      "input": "system_tokens",
+      "low_-30pct": 427680.0,
+      "high_+30pct": 646380.0,
+      "swing": 218700.0
+    },
+    {
+      "input": "rag_tokens",
+      "low_-30pct": 507869.99999999994,
+      "high_+30pct": 566190.0,
+      "swing": 58320.00000000006
+    }
+  ]
+}
