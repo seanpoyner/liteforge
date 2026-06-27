@@ -121,9 +121,13 @@ def load_mbpp(n):
     ds = load_dataset("google-research-datasets/mbpp", "sanitized", split="test").shuffle(seed=13).select(range(n))
     rows = []
     for i, r in enumerate(ds):
+        # The tests call a specific function name; tell the model to use it exactly.
+        m = re.search(r"assert\s+(\w+)\s*\(", r["test_list"][0])
+        entry = m.group(1) if m else None
+        instr = f"Define a function named `{entry}`. " if entry else ""
         rows.append({"id": f"mbpp-{i}", "eval_name": "mbpp", "grade": "code",
                      "tests": r["test_list"], "setup": r.get("test_setup_code", ""),
-                     "prompt": f"{r['prompt']}\n\nWrite a self-contained Python solution. "
+                     "prompt": f"{r['prompt']}\n\n{instr}Write a self-contained Python solution. "
                                f"Return only a fenced ```python code block."})
     return rows
 
@@ -164,7 +168,7 @@ def grade_numeric(text, gold):
 
 
 def grade_mc(text, gold):
-    m = re.search(r"Answer:\s*\(?([A-E])\)?", text, re.I)
+    m = re.search(r"Answer:\s*[\(<\[]?\s*([A-E])\b", text, re.I)
     if not m:
         # last standalone capital letter as a fallback
         cands = re.findall(r"\b([A-E])\b", text.strip().upper())
@@ -201,7 +205,7 @@ def grade_judge(question, answer):
               "Rate the answer's helpfulness and correctness from 1 to 10. "
               "Respond with only 'Rating: <n>'.")
     try:
-        r = call_model(JUDGE, [{"role": "user", "content": prompt}], 16,
+        r = call_model(JUDGE, [{"role": "user", "content": prompt}], 256,
                        _key("judge", hashlib.sha1((question + answer).encode()).hexdigest()))
     except Exception as e:
         print("  judge call failed, scoring 0:", str(e)[:80])
@@ -246,9 +250,9 @@ def main():
     print(f"loaded {len(prompts)} prompts: "
           + str(pd.Series([p['eval_name'] for p in prompts]).value_counts().to_dict()))
 
-    # Higher caps so stronger (more verbose) models reach the final answer; the first
-    # run truncated opus/sonnet mid-reasoning, which unfairly penalized them.
-    max_tokens = {"numeric": 1536, "mc": 1024, "code": 1536, "judge": 512}
+    # Per-benchmark answer-token budgets: stronger models are verbose and were being
+    # truncated mid-reasoning before the final answer (which unfairly penalized them).
+    answer_tokens = {"gsm8k": 1536, "mmlu": 2048, "arc": 1024, "mbpp": 1536, "mtbench": 2560}
     from concurrent.futures import ThreadPoolExecutor
 
     # Phase 1: fetch all (prompt, tier) responses concurrently (cached, resumable).
@@ -257,7 +261,7 @@ def main():
     def fetch(t):
         row, tier, model = t
         call_model(model, [{"role": "user", "content": row["prompt"]}],
-                   max_tokens.get(row["grade"], 768), _key(tier, row["id"]))
+                   answer_tokens.get(row["eval_name"], 1024), _key(tier, row["id"]))
     done = 0
     with ThreadPoolExecutor(max_workers=12) as ex:
         for _ in ex.map(fetch, tasks):
@@ -271,7 +275,7 @@ def main():
         rec = {"sample_id": row["id"], "eval_name": row["eval_name"], "prompt": row["prompt"]}
         for tier, model in TIERS.items():
             r = call_model(model, [{"role": "user", "content": row["prompt"]}],
-                           max_tokens.get(row["grade"], 768), _key(tier, row["id"]))
+                           answer_tokens.get(row["eval_name"], 1024), _key(tier, row["id"]))
             correct, extra = grade(row, tier, r["text"])
             rec[tier] = float(correct)
             rec[f"{tier}|total_cost"] = r["cost"]
