@@ -1,0 +1,6 @@
+task_type/
+difficulty/
+reasoning_depth/
+context_demand/
+fusion.json
+__pycache__/

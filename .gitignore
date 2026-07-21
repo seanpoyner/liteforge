@@ -79,3 +79,15 @@ dist/
 
 # Temp clone used by scripts/sync-wiki.sh
 .wiki-sync/
+
+# Research build artifacts and run logs (sources and final PDFs are kept)
+docs/*.aux
+docs/*.log
+docs/*.out
+docs/*.html
+docs/**/*.bak
+docs/**/*.bak.*
+*.bak.[0-9]*
+scripts/eval/agentic/logs_*.txt
+scripts/eval/agentic/*.output
+scripts/eval/logs/

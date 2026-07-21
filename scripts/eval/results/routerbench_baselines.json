@@ -1,0 +1,35 @@
+{
+  "n_test": 1996,
+  "routers": {
+    "embedding head (bge-m3)": {
+      "apgr": 0.3079,
+      "apgr_lo": 0.2491,
+      "apgr_hi": 0.361,
+      "cost_saved_at_95pct": 21.7
+    },
+    "length heuristic": {
+      "apgr": -0.2098,
+      "apgr_lo": -0.2647,
+      "apgr_hi": -0.151,
+      "cost_saved_at_95pct": 11.9
+    },
+    "keyword heuristic": {
+      "apgr": 0.0115,
+      "apgr_lo": -0.0437,
+      "apgr_hi": 0.0672,
+      "cost_saved_at_95pct": 9.3
+    },
+    "semantic (utterance)": {
+      "apgr": 0.1247,
+      "apgr_lo": 0.0614,
+      "apgr_hi": 0.1875,
+      "cost_saved_at_95pct": 13.2
+    },
+    "random": {
+      "apgr": -0.0496,
+      "apgr_lo": -0.1041,
+      "apgr_hi": 0.0008,
+      "cost_saved_at_95pct": 15.2
+    }
+  }
+}

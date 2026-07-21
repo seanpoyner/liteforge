@@ -104,6 +104,10 @@ pub mod pipelines;
 pub mod prompts;
 pub mod rag;
 pub mod retry;
+#[cfg(feature = "routing")]
+pub mod routing;
+#[cfg(feature = "model-routing")]
+pub mod model_routing;
 pub mod scheduler;
 pub mod skills;
 pub mod streaming;
@@ -151,6 +155,21 @@ pub use knowledge::{
 pub use rag::{
     cosine_similarity, dot_product, euclidean_distance, normalize, EmbeddedDocument, RagConfig,
     RagPipeline, RagPipelineBuilder, RetrievalResult, VectorIndex, VectorSearchResult,
+};
+
+// Re-export Layer-1 routing
+#[cfg(feature = "routing")]
+pub use routing::{
+    Deployment, DeploymentId, ModelSelector, RouteDecision, Router, RouterBuilder, RouterSettings,
+    RoutingStrategy, ScoredGroup, SelectionContext,
+};
+
+// Re-export Layer-2 model routing
+#[cfg(feature = "model-routing")]
+pub use model_routing::{
+    CapabilityTier, EmbeddingHeadSelector, EmbeddingModelConfig, EmbeddingSource, GroupCatalog,
+    MfSelector, MfWeights, ModelGroup, RemoteClassifierSelector, SelectorConfig, SemanticSelector,
+    StaticSelector, TierPolicy,
 };
 
 // Re-export events

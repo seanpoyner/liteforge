@@ -1,0 +1,48 @@
+{
+  "n_test": 135,
+  "weak": "haiku",
+  "strong": "sonnet",
+  "weak_acc": 0.8889,
+  "strong_acc": 0.9259,
+  "weak_cost": 0.001499,
+  "strong_cost": 0.003281,
+  "head_multiseed_apgr": [
+    0.0374,
+    0.0374,
+    0.0374,
+    0.0374,
+    0.0374
+  ],
+  "routers": {
+    "embedding head (bge-m3)": {
+      "apgr": 0.0342,
+      "apgr_lo": -0.4336,
+      "apgr_hi": 0.5362,
+      "cost_saved_at_95pct": 54.3
+    },
+    "length heuristic": {
+      "apgr": 0.1013,
+      "apgr_lo": -0.3679,
+      "apgr_hi": 0.5744,
+      "cost_saved_at_95pct": 54.3
+    },
+    "keyword heuristic": {
+      "apgr": 0.1794,
+      "apgr_lo": -0.3296,
+      "apgr_hi": 0.7566,
+      "cost_saved_at_95pct": 54.3
+    },
+    "random": {
+      "apgr": -0.1671,
+      "apgr_lo": -0.7572,
+      "apgr_hi": 0.4708,
+      "cost_saved_at_95pct": 54.3
+    },
+    "semantic (utterance)": {
+      "apgr": 0.0234,
+      "apgr_lo": -0.4443,
+      "apgr_hi": 0.4903,
+      "cost_saved_at_95pct": 54.3
+    }
+  }
+}

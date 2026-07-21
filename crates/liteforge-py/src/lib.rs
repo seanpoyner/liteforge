@@ -103,6 +103,8 @@ use liteforge_core::{
 use tokio::runtime::Runtime;
 use tokio::sync::Mutex;
 
+mod routing;
+
 /// Convert a Python dict to a Rust Message.
 fn dict_to_message(dict: &Bound<'_, PyDict>) -> PyResult<RustMessage> {
     let role: String = dict
@@ -8308,6 +8310,9 @@ fn liteforge(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<AutomationTaskOutput>()?;
     m.add_class::<ExecutionRecord>()?;
     m.add_class::<AutomationBuilder>()?;
+
+    // Model routing
+    m.add_class::<routing::Router>()?;
 
     Ok(())
 }
