@@ -356,6 +356,7 @@ impl WorkflowExecutor {
     }
 
     /// DFS helper to detect cycles.
+    #[allow(clippy::only_used_in_recursion)]
     fn has_cycle(
         &self,
         step: &WorkflowStep,

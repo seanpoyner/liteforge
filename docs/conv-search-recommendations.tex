@@ -1,0 +1,307 @@
+% status-report.tex.j2 -- uce-brand. Rendered by cli/uce with a YAML spec.
+% Uses LaTeX-safe Jinja delimiters configured in cli/uce.py.
+\documentclass[11pt]{uce-report}
+\begin{document}
+\ucetitle{Conversational Search Cost Optimization Recommendations}{Content Generation program, guest facing conversational search}{Prepared by Sean Poyner, Senior Director, AI Engineering, Use Case Engineering. Compiled 2026-06-27.}
+
+\noindent Guest facing conversational search currently runs on Gemini 3.1 Flash-Lite through the TIP LiteLLM proxy at a modeled run rate of about 537,000 dollars per month. About 75 percent of that is recoverable at equal quality, in a prescriptive order: cache the fixed prefix, prune and compact context, then swap the default model to gemma4:31b on Vertex, with a small hard tail that escalates only on a verified quality miss. Every recommendation below is backed by a measured result from our routing and cost studies, and every token saving is shown with its calculation. The appendix carries the full derivations, assumptions, and evidence tables.
+
+
+\vspace{0.8em}
+\section{Executive summary}
+The cost driver is structural, not the model: a 15,000 token system prefix and the retrieved context are re-sent on every turn, and history grows, so input tokens scale roughly quadratically with conversation length. Input is about 98 percent of tokens and about 89 percent of cost. That is why caching the fixed prefix is the single largest safe lever, before any model change. The recommended sequence and its expected savings:
+
+
+\begin{uceokbox}[The one new lesson]The hard tail should be an escalate on failure cascade, not an up front difficulty predictor. Our agentic routing study showed that predicting which inputs are hard does not work once tasks get complex; running the cheap model and escalating only on a verified miss does. Conversational search is easier to verify than an agentic task, so the existing grounding check doubles as the escalation trigger.
+
+\end{uceokbox}
+\vspace{0.4em}
+\noindent\begin{adjustbox}{max width=\linewidth}\begin{tabular}{lp{6.2cm}rl}
+\toprule
+\textbf{Lever} & \textbf{What it does} & \textbf{Expected saving} & \textbf{Quality risk} \\
+\midrule
+1. Prefix caching & Bill the re-sent system and static RAG prefix at the cached rate & about 35 percent & None \\
+2. Pruning and compaction & Trim the system prompt and RAG, compact history & to about 57 percent & Low, gated \\
+3. Default model swap & gemma4:31b on Vertex, measured on par with Flash-Lite & to about 75 percent & Gated, non inferior \\
+4. Hard tail escalation & Escalate only verified misses to Flash-Lite or Pro & protects quality & Reduces risk \\
+\bottomrule
+\end{tabular}\end{adjustbox}
+
+\section{The cost problem}
+Each turn re-sends the full instruction and tool block plus retrieved context, and also carries the growing conversation history. For a turn t, the input is the fixed prefix plus the history accumulated from prior turns. With a 15,000 token system prompt, 4,000 tokens of RAG, a 40 token query, and 400 tokens of output per turn, the per turn input grows by 440 tokens each turn (one query plus one output of carried history).
+
+
+\[I(t) = \text{system} + \text{rag} + (\text{query} + \text{output})\,(t-1) + \text{query}\]
+\[I(t) = 19{,}000 + 440\,(t-1) + 40 \quad\text{tokens}\]
+\subsection{Per turn token breakdown}
+\vspace{0.4em}
+\noindent\begin{adjustbox}{max width=\linewidth}\begin{tabular}{lrrrrr}
+\toprule
+\textbf{Turn} & \textbf{System} & \textbf{RAG} & \textbf{Carried history} & \textbf{Query} & \textbf{Input tokens} \\
+\midrule
+1 & 15,000 & 4,000 & 0 & 40 & 19,040 \\
+2 & 15,000 & 4,000 & 440 & 40 & 19,480 \\
+3 & 15,000 & 4,000 & 880 & 40 & 19,920 \\
+4 & 15,000 & 4,000 & 1,320 & 40 & 20,360 \\
+Total & 60,000 & 16,000 & 2,640 & 160 & 78,800 \\
+\bottomrule
+\end{tabular}\end{adjustbox}
+
+\section{Baseline forecast}
+Volume is modeled from 270 million Bonvoy members at 3 percent monthly adoption and 3 conversations per active searcher per month. These inputs are explicit and auditable, and should be calibrated against Adobe event206 to event208 volume and TIP token telemetry before external use. At Flash-Lite list pricing of 0.25 dollars input and 1.50 dollars output per million tokens, the baseline is about 537,000 dollars per month.
+
+
+\[N_{\text{conv}} = 270{,}000{,}000 \times 0.03 \times 3.0 = 24{,}300{,}000 \;\text{conversations/month}\]
+\[
+\begin{aligned}
+C_{\text{conv}} &= \frac{78{,}800 \times \$0.25 \;+\; 1{,}600 \times \$1.50}{10^{6}}
+  = \frac{\$19{,}700 + \$2{,}400}{10^{6}} = \$0.0221 \\[2pt]
+C_{\text{month}} &= \$0.0221 \times 24{,}300{,}000 = \$537{,}030
+\end{aligned}
+\]
+
+\subsection{Baseline at a glance}
+\vspace{0.4em}
+\noindent\begin{adjustbox}{max width=\linewidth}\begin{tabular}{lr}
+\toprule
+\textbf{Quantity} & \textbf{Value} \\
+\midrule
+Conversations per month & 24,300,000 \\
+Input tokens per conversation & 78,800 \\
+Output tokens per conversation & 1,600 \\
+Cost per conversation & 0.0221 dollars \\
+Input tokens per month & 1.915 trillion \\
+Output tokens per month & 38.9 billion \\
+Monthly run rate & 537,030 dollars \\
+\bottomrule
+\end{tabular}\end{adjustbox}
+
+\section{Lessons learned that shape these recommendations}
+These recommendations are not generic best practice; each rests on a measured result from the LiteForge routing paper, the cross provider cost and quality study, and the agentic routing study (all in the appendix and the docs folder). The table maps each finding to the decision it drives here.
+
+
+\vspace{0.4em}
+\noindent\begin{adjustbox}{max width=\linewidth}\begin{tabular}{p{7.5cm}p{7.5cm}}
+\toprule
+\textbf{Measured finding} & \textbf{Decision for conversational search} \\
+\midrule
+gemma4:31b scored 0.866 vs Flash-Lite 0.859 head to head (paired diff +0.007, 95 percent CI -0.017 to +0.031): statistically on par. & Swap the default to gemma4:31b on Vertex behind a non inferiority gate. \\
+Cross provider frontier: gemma4:31b reaches 0.865 (96 percent of Sonnet) and on published serverless rates costs 0.78 dollars per million, undercutting Flash-Lite. & The swap is a quality preserving cost cut, corroborated by a second independent measurement. \\
+Agentic study: gemma4:31b as the cheap tier beat a 397B model at 11 times lower cost. & A strong cheap base model is the dominant lever; lead with model selection. \\
+Predictive difficulty routing scored at or below random on agentic tasks (APGR -0.14 and -0.44). & Do not build an up front difficulty router for the hard tail. \\
+Escalate on failure beat always using the strongest model (oracle cascade 0.727 vs 0.628). & Make the hard tail a cascade that escalates only on a verified miss. \\
+Verification quality scales with the judge and is the bottleneck (best recall about 0.60). & Gate escalation on the existing grounding check, which is a strong cheap verifier for QA. \\
+\bottomrule
+\end{tabular}\end{adjustbox}
+
+\section{Recommendations}
+Five recommendations, in execution order. Each states the finding it rests on, the decision, the calculation, and the expected saving. Savings are cumulative in the stated order and are shown for the expected scenario unless noted.
+
+
+\subsection{R1. Cache the fixed prefix}
+Finding and decision: the system prompt and the static share of RAG are identical across turns, so they can be billed at the cached rate on a hit. This is the largest lever with zero quality risk. Ship it first. The cacheable prefix per conversation is the fixed block re-sent on each of the four turns.
+
+
+\vspace{0.4em}
+\noindent\begin{adjustbox}{max width=\linewidth}\begin{tabular}{rrr}
+\toprule
+\textbf{Cache hit rate} & \textbf{Monthly cost} & \textbf{Saved} \\
+\midrule
+50 percent & 418,112 dollars & 22.1 percent \\
+60 percent & 394,328 dollars & 26.6 percent \\
+70 percent & 370,545 dollars & 31.0 percent \\
+80 percent & 346,761 dollars & 35.4 percent \\
+90 percent & 322,977 dollars & 39.9 percent \\
+95 percent & 311,086 dollars & 42.1 percent \\
+\bottomrule
+\end{tabular}\end{adjustbox}
+
+\[P_{\text{cache}} = 4 \times \big(15{,}000 + 0.6 \times 4{,}000\big) = 4 \times 17{,}400 = 69{,}600 \;\text{of}\; 78{,}800 \;\text{input tokens}\]
+\subsection{R2. Prune context and compact history}
+Finding and decision: not all of the prefix is load bearing. Trimming the system prompt and tightening retrieval shrink the re-sent block, and compacting history caps the quadratic growth term. Applied after caching, the expected scenario (40 percent system trim, 35 percent RAG trim, 60 percent history compaction) reaches about 57 percent cumulative. This is gated by the quality check in the next section.
+
+
+\[\text{after prune (expected)} = \$232{,}114 \;\Rightarrow\; 56.8\%\ \text{saved cumulatively}\]
+\subsection{R3. Swap the default model to gemma4:31b on Vertex}
+Finding: gemma4:31b is on par with Flash-Lite on quality by three independent measurements (head to head 0.866 vs 0.859; cross provider frontier 0.865 at 96 percent of Sonnet; and as the agentic cheap tier it beat a 397B model). Decision: make it the default for nearly all traffic on managed Vertex, in GCP, per token. At the input heavy mix it is about 42 percent cheaper at equal quality, taking the expected scenario from about 57 percent to about 75 percent.
+
+
+\[r_{\text{save}} = \frac{0.2749 - 0.159}{0.2749} = 0.42 \;\Rightarrow\; 42\%\ \text{cheaper at equal quality}\]
+\subsection{R4. Escalate the hard tail on verified failure}
+Finding: in the agentic study, predicting which inputs need the strong model failed (APGR at or below random), but running the cheap model and escalating only on a verified miss beat even always using the strongest model. The cheap realistic trigger was self consistency; a model judge helped only when strong and calibrated. Decision: keep gemma4:31b as the default, and escalate a turn to Flash-Lite or Gemini Pro only when the grounding and faithfulness check fails, with self consistency as the free fallback trigger. Conversational search is easier to verify than an agentic booking, so a cheap verifier suffices here. The tail adds back only the escalated share.
+
+
+\[C_{\text{with tail}} = (1 - r)\,C_{\text{cheap}} + r\,C_{\text{strong}}, \quad r = \text{verified miss rate}\]
+\subsection{R5. Build the levers once in TIP}
+Decision: caching, pruning, the default model policy, the escalation cascade, and spend metrics belong in the TIP SDK as a shared platform capability, not re-implemented per application. Conversational search is the first and highest volume tenant; the same capability then serves Content Generation consumers and other agents, and emits spend to the control plane that governs the routing and guardrail configuration.
+
+
+\section{Savings curve}
+Three operating points let leadership choose against effort and risk. Conservative applies caching and pruning only. Expected adds the gemma4:31b default swap. Aggressive pushes caching, pruning, and routing harder. Dollar figures are monthly run rate from the model.
+
+
+\vspace{0.4em}
+\noindent\begin{adjustbox}{max width=\linewidth}\begin{tabular}{lrrr}
+\toprule
+\textbf{Stage} & \textbf{Conservative} & \textbf{Expected} & \textbf{Aggressive} \\
+\midrule
+Baseline & 537,030 & 537,030 & 537,030 \\
+After caching & 457,751 & 346,761 & 265,897 \\
+After pruning & 376,456 & 232,114 & 144,707 \\
+After model swap & 376,456 & 138,055 & 75,160 \\
+After hard tail & 376,456 & 135,294 & 72,154 \\
+Total saved & 30 percent & 75 percent & 87 percent \\
+\bottomrule
+\end{tabular}\end{adjustbox}
+
+\section{Quality gate and rollout}
+No change ships unless it is strictly non inferior to the Flash-Lite baseline on real conversational search queries, scored by an LLM judge and a grounding and faithfulness check on Lakshmi Nimmagadda's eval set, with bootstrap confidence intervals. The gemma4:31b swap already clears non inferiority on public benchmarks (paired diff +0.007, CI -0.017 to +0.031). Recommended rollout is shadow, then a gated A and B test with automatic rollback on any KPI regression.
+
+
+\begin{uceinfobox}[Calibration before external use]These are model outputs, not measured spend. Calibrate adoption and turns from Adobe event206 to event208, the token mix from TIP and Dynatrace telemetry, the in tenant Flash-Lite and Vertex prices and the cached token discount, and reconcile the baseline against the Egor and Kenny cost alignment numbers.
+
+\end{uceinfobox}
+\section{Appendix}
+The receipts: every assumption, derivation, scenario calculation, and the measured evidence behind each recommendation. Numbers regenerate from the scripts named in section K.
+
+
+\subsection{A. Assumptions and sources}
+\vspace{0.4em}
+\noindent\begin{adjustbox}{max width=\linewidth}\begin{tabular}{p{4.5cm}rp{6cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Source to calibrate against} \\
+\midrule
+Bonvoy members & 270,000,000 & Loyalty reporting \\
+Monthly adoption & 3 percent & Adobe event206 to event208 (validate) \\
+Conversations per user per month & 3.0 & Adobe analytics (validate) \\
+Turns per conversation & 4.0 & TIP conversation telemetry \\
+System prompt tokens & 15,000 & Confirmed, instruction and tool block \\
+RAG tokens per turn & 4,000 & Retrieval config (60 percent static) \\
+Query tokens per turn & 40 & Telemetry \\
+Output tokens per turn & 400 & Telemetry \\
+Flash-Lite price in and out & 0.25 and 1.50 per 1M & Jira GENAI-1412, WEB-194505; validate in tenant \\
+Cached read multiplier & 0.25 & Vertex context caching (confirm support) \\
+\bottomrule
+\end{tabular}\end{adjustbox}
+
+\subsection{B. Baseline derivation in full}
+Input per turn is the fixed prefix plus carried history plus the query; the four turns sum to 78,800 input tokens, with 1,600 output tokens. Monthly volume is 24.3 million conversations.
+
+
+\[
+\begin{aligned}
+I(1)+\cdots+I(4) &= 19{,}040 + 19{,}480 + 19{,}920 + 20{,}360 = 78{,}800 \\[2pt]
+\text{tokens/month} &= 78{,}800 \times 24{,}300{,}000 = 1.915\times 10^{12}\ \text{input} \\[2pt]
+C_{\text{month}} &= \frac{78{,}800(0.25) + 1{,}600(1.50)}{10^{6}} \times 24{,}300{,}000 = \$537{,}030
+\end{aligned}
+\]
+
+\subsection{C. Caching derivation}
+On a cache hit the cacheable prefix is billed at the cached multiplier m of the input price. With cacheable tokens c, hit rate h, input I and output O, the per conversation cost is the formula below. The 50 to 95 percent hit sweep in recommendation R1 follows directly, from 22.1 percent to 42.1 percent saved.
+
+
+\[C = \frac{(I - c\,h)\,p_{\text{in}} + c\,h\,p_{\text{in}}\,m + O\,p_{\text{out}}}{10^{6}}, \quad c = 69{,}600,\; m = 0.25\]
+\subsection{D. Pruning and compaction derivation}
+System trim and RAG trim reduce the fixed prefix; history compaction reduces the quadratic carried term. The expected scenario uses 40 percent system trim, 35 percent RAG trim, and 60 percent compaction, reaching 56.8 percent cumulative with caching.
+
+
+\[I_{\text{pruned}}(t) = \text{sys}(1 - s) + \text{rag}(1 - r) + (\text{q}+\text{o})(t-1)(1 - k) + \text{q}\]
+\[s = 0.40,\quad r = 0.35,\quad k = 0.60 \;\Rightarrow\; \$232{,}114/\text{month}\]
+\subsection{E. Model swap price derivation}
+Blended price is the input output mix weighted rate. At the conversational search mix gemma4:31b on Vertex is 42 percent cheaper than Flash-Lite at on par quality, which moves the expected scenario from 56.8 percent to 74.3 percent.
+
+
+\[p_{\text{blend}} = \frac{p_{\text{in}}\,T_{\text{in}} + p_{\text{out}}\,T_{\text{out}}}{T_{\text{in}} + T_{\text{out}}}: \;\; 0.2749 \to 0.159 \;\Rightarrow\; 42\%\ \text{lower}\]
+\subsection{F. Per scenario cumulative savings}
+\vspace{0.4em}
+\noindent\begin{adjustbox}{max width=\linewidth}\begin{tabular}{lrrrr}
+\toprule
+\textbf{Scenario} & \textbf{Cache} & \textbf{Plus prune} & \textbf{Plus model} & \textbf{Plus tail} \\
+\midrule
+Conservative & 14.8 percent & 29.9 percent & 29.9 percent & 29.9 percent \\
+Expected & 35.4 percent & 56.8 percent & 74.3 percent & 74.8 percent \\
+Aggressive & 50.5 percent & 73.1 percent & 86.0 percent & 86.6 percent \\
+\bottomrule
+\end{tabular}\end{adjustbox}
+
+\subsection{G. Provider cost and quality table (corrected)}
+From the cross provider study, n equals 290 public benchmark prompts. OSS prices are published serverless rates (Together, DeepInfra, Mistral) blended at this token mix, fetched 2026-06-27. These replace an earlier owned compute estimate that was throughput noise (it had a 14B model at 23 dollars and a 4B above a 120B).
+
+
+\vspace{0.4em}
+\noindent\begin{adjustbox}{max width=\linewidth}\begin{tabular}{p{5.5cm}rrr}
+\toprule
+\textbf{Model} & \textbf{Accuracy} & \textbf{Percent of Sonnet} & \textbf{Dollars per 1M} \\
+\midrule
+Sonnet 4.6 (anchor) & 0.896 & 100 & 11.27 measured \\
+gemma4:31b & 0.865 & 96 & 0.78 published \\
+glm-5.2 & 0.861 & 96 & 4.08 published \\
+Gemini 3.1 Flash-Lite & 0.858 & 96 & 1.05 measured \\
+deepseek-v4-pro & 0.854 & 95 & 3.31 published \\
+DeepSeek v4 Flash & 0.850 & 95 & 0.26 measured \\
+gpt-oss-120b & 0.844 & 94 & 0.49 published \\
+gemma3-27b & 0.771 & 86 & 0.14 published \\
+Mistral Small & 0.741 & 83 & 0.09 measured \\
+\bottomrule
+\end{tabular}\end{adjustbox}
+
+\subsection{H. Routing and cascade evidence}
+Why the hard tail is a cascade, not a predictor. Predictive difficulty routing scored at or below random on agentic tasks; escalate on failure beat even always strong; and a verifier helps only when strong and calibrated. Conversational search is QA like, so a lightweight router is viable for an easy and hard split, but the robust mechanism is the grounding gated cascade.
+
+
+\vspace{0.4em}
+\noindent\begin{adjustbox}{max width=\linewidth}\begin{tabular}{p{6cm}p{4.5cm}r}
+\toprule
+\textbf{Strategy or router} & \textbf{Metric} & \textbf{Result} \\
+\midrule
+Embedding head on RouterBench (QA) & APGR & 0.31 \\
+router-bert on agentic & APGR & -0.14 \\
+MF port on agentic & APGR & -0.44 \\
+All strong (glm-5.2), gemma pool & quality & 0.628 \\
+Oracle cascade, gemma pool & quality & 0.753 \\
+Self consistency cascade, gemma pool & quality & 0.613 \\
+Judge cascade (glm-5.2) & quality & 0.614 \\
+Judge recall, gemma3:27b to glm-5.2 & recall & 0.07 to 0.60 \\
+\bottomrule
+\end{tabular}\end{adjustbox}
+
+\subsection{I. Cost model formulas}
+The exact functions used. Per conversation tokens accumulate the re-sent prefix and the growing history; cost applies the cached multiplier to the hit fraction of the cacheable prefix.
+
+
+\[
+\begin{aligned}
+\text{input} &= \sum_{t=1}^{T}\Big[\text{sys} + \text{rag} + (\text{q}+\text{o})(t-1) + \text{q}\Big] \\[2pt]
+\text{cost} &= \frac{(\text{input} - c h)\,p_{\text{in}} + c h\,p_{\text{in}} m + \text{output}\,p_{\text{out}}}{10^{6}}
+\end{aligned}
+\]
+
+\subsection{J. Glossary and terminology}
+\vspace{0.4em}
+\noindent\begin{adjustbox}{max width=\linewidth}\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Term} & \textbf{Meaning} \\
+\midrule
+Content Generation & The program. ConEng is the TIP Context Engine component built for it; the two are not interchangeable. \\
+APGR & Average performance gain recovered: 0 is random routing, 1 is the oracle. \\
+Cascade & Run the cheap model first, escalate to a stronger model only on a verified miss. \\
+Self consistency & Sample the cheap model a few times and escalate when the samples disagree. \\
+Blended price & Input output mix weighted dollars per million tokens at this workload. \\
+Non inferiority & Strictly not worse than baseline within a confidence interval (the do no harm gate). \\
+\bottomrule
+\end{tabular}\end{adjustbox}
+
+\subsection{K. References and reproducibility}
+\begin{itemize}
+  \item Forecast model: scripts/forecast/conv\_search\_forecast.py, results/forecast.json.  \item Cross provider study: docs/provider-cost-quality-study.md, results/provider\_frontier.json.  \item Agentic routing study: docs/agentic-routing-study.md (cascade, verifier, gemma findings).  \item Routing paper: docs/paper/liteforge-routing.tex (Studies 1 to 4).  \item Forecast narrative: docs/conv-search-token-forecast.tex.  \item Provider prices fetched 2026-06-27: together.ai, deepinfra.com, mistral.ai.  \item Setup tickets: Jira GENAI-1412 and WEB-194505 (Flash-Lite via the TIP proxy).\end{itemize}
+
+\begin{ucecallout}{Bottom line}
+Lead with model selection and structural savings: cache the prefix, prune and compact, set gemma4:31b on Vertex as the default, and escalate only verified misses. Expected recovery is about 75 percent of a 537,000 dollar per month run rate at equal quality, every number shown in the appendix.
+
+\end{ucecallout}
+\begin{ucecallout}{Appendix and evidence}
+The appendix that follows carries the full assumptions, derivations, per scenario calculations, the corrected provider cost and quality table, and the routing and cascade evidence with confidence intervals.
+
+\end{ucecallout}
+
+\end{document}

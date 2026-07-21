@@ -1,0 +1,26 @@
+# Embedding-head router (the benchmark-validated default).
+#
+# Routes over frozen bge-m3 embeddings with a tiny learned quality + task head
+# (trained on real RouterBench data via scripts/eval/train_router_head.py). This is
+# the only small router our RouterBench study found that beats the random baseline
+# (APGR +0.31, ~22% cost saved at 95% of GPT-4 quality). See docs/guides/model-routing.md.
+
+model_list:
+  - model_name: chat
+    litellm_params: { model: claude-haiku-4.5,  api_base: https://litellm.poyner.ai/v1, api_key: os.environ/LITEFORGE_API_KEY }
+  - model_name: code
+    litellm_params: { model: claude-sonnet-4.6, api_base: https://litellm.poyner.ai/v1, api_key: os.environ/LITEFORGE_API_KEY }
+  - model_name: reasoning
+    litellm_params: { model: claude-opus-4.7,   api_base: https://litellm.poyner.ai/v1, api_key: os.environ/LITEFORGE_API_KEY }
+  - model_name: long_context
+    litellm_params: { model: claude-sonnet-4.6, api_base: https://litellm.poyner.ai/v1, api_key: os.environ/LITEFORGE_API_KEY }
+  - model_name: general
+    litellm_params: { model: claude-sonnet-4.6, api_base: https://litellm.poyner.ai/v1, api_key: os.environ/LITEFORGE_API_KEY }
+
+model_routing:
+  embedding: { base_url: https://litellm.poyner.ai/v1, model: bge-m3, dimensions: 1024 }
+  selector:
+    kind: embedding_head
+    weights_path: ./router-head.json    # produced by scripts/eval/train_router_head.py; env FORGE_ROUTER_WEIGHTS overrides
+    cache: { capacity: 4096, ttl_secs: 300 }
+    on_error: static                    # fall back to passthrough if the head spec is missing

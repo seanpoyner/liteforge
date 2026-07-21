@@ -25,6 +25,7 @@ mod pipelines;
 mod prompts;
 mod rag;
 mod retry;
+mod routing;
 mod scheduler;
 mod skills;
 mod streaming;
