@@ -197,9 +197,19 @@ fn build_env_vars(base_url: &str, api_key: Option<&str>) -> HashMap<String, Stri
     env.insert("OPENAI_BASE_URL".to_string(), base_url.to_string());
     env.insert("LITEFORGE_BASE_URL".to_string(), base_url.to_string());
 
-    // Set API key
+    // Set API key. We set ANTHROPIC_AUTH_TOKEN in addition to ANTHROPIC_API_KEY
+    // because Claude Code prefers ANTHROPIC_AUTH_TOKEN (sent as
+    // `Authorization: Bearer`) over ANTHROPIC_API_KEY (`x-api-key`) and over a
+    // cached OAuth login. If a shell exports ANTHROPIC_AUTH_TOKEN for another
+    // purpose (e.g. a local Ollama proxy that uses `ollama` as its token), it
+    // would leak through here — Claude Code would send that token as
+    // `Authorization: Bearer` to the proxy, which forwards it to the upstream
+    // gateway, which rejects it with 401 "Invalid proxy server token passed".
+    // Forcing ANTHROPIC_AUTH_TOKEN to the real gateway key prevents that leak
+    // and also keeps Claude Code from using an OAuth (Claude Max) token here.
     if let Some(key) = api_key {
         env.insert("ANTHROPIC_API_KEY".to_string(), key.to_string());
+        env.insert("ANTHROPIC_AUTH_TOKEN".to_string(), key.to_string());
         env.insert("OPENAI_API_KEY".to_string(), key.to_string());
         env.insert("LITEFORGE_API_KEY".to_string(), key.to_string());
     }
@@ -218,6 +228,15 @@ fn build_env_vars(base_url: &str, api_key: Option<&str>) -> HashMap<String, Stri
             "ANTHROPIC_SMALL_FAST_MODEL".to_string(),
             "claude-haiku-4.5".to_string(),
         );
+    }
+
+    // Claude Code's default API request timeout (~60s) is too short for the
+    // always-thinking models LiteForge routes to (e.g. kimi-k3, which can spend
+    // 60-120s in reasoning before the first content token on complex prompts),
+    // so requests time out and Claude Code retries in a loop. Give a generous
+    // 5-min ceiling; overridable by exporting API_TIMEOUT_MS before `forge claude`.
+    if std::env::var_os("API_TIMEOUT_MS").is_none() {
+        env.insert("API_TIMEOUT_MS".to_string(), "300000".to_string());
     }
 
     env
