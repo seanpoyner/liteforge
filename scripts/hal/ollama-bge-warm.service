@@ -1,0 +1,8 @@
+[Unit]
+Description=Keep bge-m3 resident in Ollama (warm the embedding model)
+After=ollama.service
+Wants=ollama.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/warm-bge.sh

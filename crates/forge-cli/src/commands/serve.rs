@@ -48,6 +48,11 @@ pub struct ServeArgs {
     /// Override skills port
     #[arg(long)]
     pub skills_port: Option<u16>,
+
+    /// Path to a model-routing YAML. When set, `/v1/chat/completions` routes
+    /// through the load-balancing router + optional content/quality selector.
+    #[arg(long, env = "FORGE_ROUTER_CONFIG")]
+    pub router: Option<PathBuf>,
 }
 
 #[derive(clap::Subcommand)]
@@ -103,7 +108,21 @@ pub async fn execute(args: ServeArgs) -> Result<(), CliError> {
         config.skills.port = p;
     }
 
-    let state = AppState::new(config.clone(), args.api_key.clone(), args.base_url.clone());
+    let router = if let Some(path) = &args.router {
+        Some(crate::commands::route::load_router(path).await?)
+    } else {
+        None
+    };
+    if router.is_some() {
+        println!("Model router loaded from {:?}", args.router.as_ref().unwrap());
+    }
+
+    let state = AppState::with_router(
+        config.clone(),
+        args.api_key.clone(),
+        args.base_url.clone(),
+        router,
+    );
 
     match args.command {
         None | Some(ServeCommand::All) => serve::start_all(state, &config).await,

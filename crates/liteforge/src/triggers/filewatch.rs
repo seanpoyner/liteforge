@@ -334,6 +334,7 @@ impl FileWatchTrigger {
         self.glob_match(&pattern_chars, &name_chars, 0, 0)
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn glob_match(&self, pattern: &[char], name: &[char], pi: usize, ni: usize) -> bool {
         if pi == pattern.len() && ni == name.len() {
             return true;

@@ -1,0 +1,98 @@
+[
+  {
+    "prompt": "hey, good evening!",
+    "group": "chat",
+    "signals": {
+      "hardness": 0.6032,
+      "task": "qa"
+    },
+    "routed_model": "claude-haiku-4.5",
+    "panel_ms": 1612,
+    "model_ms": 1142,
+    "answer_preview": "Good evening! It's nice to meet you. How's your day going?"
+  },
+  {
+    "prompt": "what is 12 times 8?",
+    "group": "chat",
+    "signals": {
+      "hardness": 0.5562,
+      "task": "math"
+    },
+    "routed_model": "claude-haiku-4.5",
+    "panel_ms": 5711,
+    "model_ms": 850,
+    "answer_preview": "12 times 8 is **96**."
+  },
+  {
+    "prompt": "write a python function to check if a string is a palindrome",
+    "group": "code",
+    "signals": {
+      "hardness": 0.4836,
+      "task": "code"
+    },
+    "routed_model": "claude-sonnet-4.6",
+    "panel_ms": 456,
+    "model_ms": 2394,
+    "answer_preview": "## Palindrome Check Function  Here's a simple Python function to check if a string is a pa"
+  },
+  {
+    "prompt": "refactor this module to remove the global mutex and add tests",
+    "group": "general",
+    "signals": {
+      "hardness": 0.5088,
+      "task": "qa"
+    },
+    "routed_model": "claude-sonnet-4.6",
+    "panel_ms": 417,
+    "model_ms": 2335,
+    "answer_preview": "I'd be happy to help refactor the module, but I don't see any code in your message. Could "
+  },
+  {
+    "prompt": "prove that the square root of 2 is irrational",
+    "group": "general",
+    "signals": {
+      "hardness": 0.5562,
+      "task": "qa"
+    },
+    "routed_model": "claude-sonnet-4.6",
+    "panel_ms": 386,
+    "model_ms": 2506,
+    "answer_preview": "# Proof that \u221a2 is Irrational  ## Setup  **Assume for contradiction** that \u221a2 is rational."
+  },
+  {
+    "prompt": "design a fault-tolerant consensus protocol and argue its safety",
+    "group": "general",
+    "signals": {
+      "hardness": 0.3747,
+      "task": "qa"
+    },
+    "routed_model": "claude-sonnet-4.6",
+    "panel_ms": 408,
+    "model_ms": 4459,
+    "answer_preview": "# Fault-Tolerant Consensus Protocol: **Byzantium**  ## Overview  **Byzantium** is a leader"
+  },
+  {
+    "prompt": "summarize the plot of a generic detective novel in two sentences",
+    "group": "general",
+    "signals": {
+      "hardness": 0.5254,
+      "task": "qa"
+    },
+    "routed_model": "claude-sonnet-4.6",
+    "panel_ms": 1602,
+    "model_ms": 14001,
+    "answer_preview": "A seasoned but troubled detective is called to investigate a mysterious murder, uncovering"
+  },
+  {
+    "prompt": "debug: my recursion overflows the stack on large inputs, why?",
+    "group": "reasoning",
+    "signals": {
+      "hardness": 0.6297,
+      "task": "qa"
+    },
+    "routed_model": "claude-opus-4.7",
+    "panel_ms": 6478,
+    "model_ms": 3656,
+    "answer_preview": "Without seeing your code, I can only give general reasons. The most common causes of stack"
+  }
+]

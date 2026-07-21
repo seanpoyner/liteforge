@@ -41,12 +41,14 @@ images.rs            # Image input helpers
 knowledge/           # Knowledge base client + local backend
 mcp/                 # Model Context Protocol client + auth
 observability/       # Tracing, metrics, structured logging
-orchestration/       # Multi-agent orchestrator/router
+model_routing/       # Layer-2 content/quality selectors (feature `model-routing`)
+orchestration/       # Multi-agent orchestrator/router (intent-based; distinct from routing/)
 otel_init.rs         # OTLP exporter setup (gated by `otel` feature)
 pipelines/           # Provider detection, capability resolution, model config
 prompts/             # Prompt templates
 rag/                 # Embedding + vector index
 retry.rs             # with_retry / with_retry_async, RetryConfig
+routing/             # Layer-1 model router: deployments/strategies/health/fallbacks (feature `routing`)
 scheduler/           # Cron/interval scheduled jobs
 skills/              # Skill registry + middleware
 tools/               # Tool trait, ToolRegistry, ToolExecutor
@@ -76,6 +78,9 @@ pub use retry::{is_retryable, with_retry, with_retry_async, RetryConfig};
 | `LITEFORGE_TIMEOUT` | Request timeout (seconds) | `60` |
 | `LITEFORGE_DEFAULT_METADATA` | JSON merged into every request body's `metadata` | — |
 | `LITEFORGE_OTEL_CAPTURE_PROMPTS` | Capture prompt/completion text in spans | `false` |
+| `FORGE_ROUTER_CONFIG` | Path to a router YAML (used by `forge serve --router` / `forge route`) | — |
+| `FORGE_ROUTER_WEIGHTS` | Override the MF selector `weights_path` | — |
+| `FORGE_ROUTER_EMBEDDING_BASE_URL` | Override the selector embedding endpoint | — |
 
 Standard OTel env vars (`OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_SERVICE_NAME`, …) are honored when the `otel` feature is enabled.
 
@@ -105,7 +110,7 @@ The CLI binary is `forge` (e.g. `target/release/forge --help`).
 - **Async:** tokio with `#[tokio::main]` for examples; library code uses `async fn` + `Send` futures.
 - **Errors:** `thiserror`-derived `ForgeError`; never `unwrap()` in library code, prefer `?`.
 - **Deps:** add to root `Cargo.toml` `[workspace.dependencies]` and reference `{ workspace = true }` from member crates.
-- **Features:** keep `default = []`; gate optional integrations (e.g. `otel`) so consumers opt in.
+- **Features:** keep `default = []`; gate optional integrations (e.g. `otel`, `routing`, `model-routing`) so consumers opt in. `model-routing` implies `routing`.
 - **Public API:** use `#[non_exhaustive]` on enums/structs that may grow.
 - **Tests:** colocate with the module (`#[cfg(test)] mod tests`); integration tests in `tests/`.
 

@@ -60,6 +60,7 @@ nav:
     - Streaming: guides/streaming.md
     - Tools & Function Calling: guides/tools.md
     - RAG Pipeline: guides/rag.md
+    - Model Routing: guides/model-routing.md
     - Agents: guides/agents.md
     - Guardrails: guides/guardrails.md
     - Observability: guides/observability.md

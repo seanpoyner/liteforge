@@ -5,6 +5,7 @@ mod client;
 mod error;
 mod knowledge;
 mod mcp;
+mod routing;
 mod tools;
 mod types;
 

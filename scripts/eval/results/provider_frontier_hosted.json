@@ -1,0 +1,171 @@
+{
+  "n_prompts": 290,
+  "benches": [
+    "arc",
+    "gpqa",
+    "gsm8k",
+    "json",
+    "mbpp",
+    "mmlu",
+    "mmlupro"
+  ],
+  "sonnet_acc": 0.8966,
+  "models": [
+    {
+      "model": "sonnet",
+      "path": "anchor",
+      "acc": 0.8957,
+      "acc_lo": 0.8586,
+      "acc_hi": 0.931,
+      "pct_of_sonnet": 99.9,
+      "usd_per_1m": 11.2685,
+      "price_src": "hosted(measured)",
+      "tps_single": 47.0,
+      "per_bench": {
+        "arc": 0.975,
+        "gpqa": 0.84,
+        "gsm8k": 1.0,
+        "json": 1.0,
+        "mbpp": 0.7,
+        "mmlu": 0.95,
+        "mmlupro": 0.86
+      }
+    },
+    {
+      "model": "gemini-flash-lite",
+      "path": "hosted",
+      "acc": 0.8575,
+      "acc_lo": 0.8172,
+      "acc_hi": 0.8966,
+      "pct_of_sonnet": 95.6,
+      "usd_per_1m": 1.0451,
+      "price_src": "hosted(measured)",
+      "tps_single": 135.5,
+      "per_bench": {
+        "arc": 0.975,
+        "gpqa": 0.76,
+        "gsm8k": 0.975,
+        "json": 1.0,
+        "mbpp": 0.625,
+        "mmlu": 0.95,
+        "mmlupro": 0.8
+      }
+    },
+    {
+      "model": "haiku",
+      "path": "anchor",
+      "acc": 0.8364,
+      "acc_lo": 0.7931,
+      "acc_hi": 0.8828,
+      "pct_of_sonnet": 93.3,
+      "usd_per_1m": 3.8624,
+      "price_src": "hosted(measured)",
+      "tps_single": 105.3,
+      "per_bench": {
+        "arc": 0.95,
+        "gpqa": 0.7,
+        "gsm8k": 0.975,
+        "json": 1.0,
+        "mbpp": 0.65,
+        "mmlu": 0.875,
+        "mmlupro": 0.8
+      }
+    },
+    {
+      "model": "deepseek-flash",
+      "path": "hosted",
+      "acc": 0.741,
+      "acc_lo": 0.6931,
+      "acc_hi": 0.7897,
+      "pct_of_sonnet": 82.6,
+      "usd_per_1m": 0.2574,
+      "price_src": "hosted(measured)",
+      "tps_single": 77.6,
+      "per_bench": {
+        "arc": 0.925,
+        "gpqa": 0.3,
+        "gsm8k": 0.975,
+        "json": 1.0,
+        "mbpp": 0.625,
+        "mmlu": 0.9,
+        "mmlupro": 0.66
+      }
+    },
+    {
+      "model": "mistral-small",
+      "path": "hosted",
+      "acc": 0.7407,
+      "acc_lo": 0.6897,
+      "acc_hi": 0.7897,
+      "pct_of_sonnet": 82.6,
+      "usd_per_1m": 0.0923,
+      "price_src": "hosted(measured)",
+      "tps_single": 93.7,
+      "per_bench": {
+        "arc": 0.925,
+        "gpqa": 0.38,
+        "gsm8k": 0.975,
+        "json": 1.0,
+        "mbpp": 0.55,
+        "mmlu": 0.85,
+        "mmlupro": 0.68
+      }
+    }
+  ],
+  "quality_bars": {
+    "90% sonnet": "gemini-flash-lite",
+    "95% sonnet": "gemini-flash-lite",
+    "99% sonnet": "sonnet"
+  },
+  "routing_roi": {
+    "weak": "gemini-flash-lite",
+    "strong": "sonnet",
+    "n_test": 87,
+    "weak_acc": 0.8276,
+    "strong_acc": 0.8851,
+    "head_apgr": 0.0092,
+    "head_apgr_lo": -0.4979,
+    "head_apgr_hi": 0.5018
+  },
+  "breakeven": {
+    "GB10 (hal, amortized)": {
+      "fixed_monthly_usd": 160.6,
+      "breakeven_tokens_month": 153669505
+    },
+    "L40S (cloud)": {
+      "fixed_monthly_usd": 1138.8,
+      "breakeven_tokens_month": 1089656492
+    },
+    "H100 (cloud)": {
+      "fixed_monthly_usd": 1825.0,
+      "breakeven_tokens_month": 1746244379
+    },
+    "watsonx_floor_usd_month": [
+      1500,
+      5000
+    ]
+  },
+  "pricing_notes": {
+    "gpu_hr": {
+      "GB10 (hal, amortized)": 0.22,
+      "L40S (cloud)": 1.56,
+      "H100 (cloud)": 2.5
+    },
+    "watsonx_1m": {
+      "granite-8b": [
+        0.06,
+        0.25
+      ],
+      "granite-30b": [
+        0.2,
+        0.6
+      ]
+    },
+    "batch_mult_modeled": [
+      1,
+      10,
+      30
+    ],
+    "sources_fetched": "2026-06-24"
+  }
+}

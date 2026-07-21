@@ -13,7 +13,7 @@ name = "forge"
 path = "src/main.rs"
 
 [dependencies]
-liteforge = { path = "../liteforge" }
+liteforge = { path = "../liteforge", features = ["model-routing"] }
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

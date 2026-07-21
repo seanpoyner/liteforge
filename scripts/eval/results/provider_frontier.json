@@ -1,0 +1,571 @@
+{
+  "n_prompts": 290,
+  "benches": [
+    "arc",
+    "gpqa",
+    "gsm8k",
+    "json",
+    "mbpp",
+    "mmlu",
+    "mmlupro"
+  ],
+  "sonnet_acc": 0.8966,
+  "models": [
+    {
+      "model": "sonnet",
+      "path": "anchor",
+      "acc": 0.8957,
+      "acc_lo": 0.8586,
+      "acc_hi": 0.931,
+      "pct_of_sonnet": 99.9,
+      "usd_per_1m": 11.2685,
+      "price_src": "hosted(measured)",
+      "tps_single": 47.0,
+      "per_bench": {
+        "arc": 0.975,
+        "gpqa": 0.84,
+        "gsm8k": 1.0,
+        "json": 1.0,
+        "mbpp": 0.7,
+        "mmlu": 0.95,
+        "mmlupro": 0.86
+      }
+    },
+    {
+      "model": "gemma-31b-cloud",
+      "path": "cloud",
+      "acc": 0.8645,
+      "acc_lo": 0.8241,
+      "acc_hi": 0.9034,
+      "pct_of_sonnet": 96.4,
+      "usd_per_1m": 0.7816,
+      "price_src": "published",
+      "tps_single": 16.6,
+      "per_bench": {
+        "arc": 0.975,
+        "gpqa": 0.76,
+        "gsm8k": 1.0,
+        "json": 1.0,
+        "mbpp": 0.65,
+        "mmlu": 0.95,
+        "mmlupro": 0.8
+      }
+    },
+    {
+      "model": "glm-cloud",
+      "path": "cloud",
+      "acc": 0.8613,
+      "acc_lo": 0.8207,
+      "acc_hi": 0.9,
+      "pct_of_sonnet": 96.1,
+      "usd_per_1m": 4.0799,
+      "price_src": "published",
+      "tps_single": 58.2,
+      "per_bench": {
+        "arc": 0.95,
+        "gpqa": 0.66,
+        "gsm8k": 1.0,
+        "json": 1.0,
+        "mbpp": 0.65,
+        "mmlu": 0.975,
+        "mmlupro": 0.88
+      }
+    },
+    {
+      "model": "minimax-cloud",
+      "path": "cloud",
+      "acc": 0.861,
+      "acc_lo": 0.8207,
+      "acc_hi": 0.8966,
+      "pct_of_sonnet": 96.0,
+      "usd_per_1m": 1.1036,
+      "price_src": "published",
+      "tps_single": 27.2,
+      "per_bench": {
+        "arc": 0.975,
+        "gpqa": 0.72,
+        "gsm8k": 0.975,
+        "json": 1.0,
+        "mbpp": 0.625,
+        "mmlu": 0.975,
+        "mmlupro": 0.84
+      }
+    },
+    {
+      "model": "gemini-flash-lite",
+      "path": "hosted",
+      "acc": 0.8575,
+      "acc_lo": 0.8172,
+      "acc_hi": 0.8966,
+      "pct_of_sonnet": 95.6,
+      "usd_per_1m": 1.0451,
+      "price_src": "hosted(measured)",
+      "tps_single": 135.5,
+      "per_bench": {
+        "arc": 0.975,
+        "gpqa": 0.76,
+        "gsm8k": 0.975,
+        "json": 1.0,
+        "mbpp": 0.625,
+        "mmlu": 0.95,
+        "mmlupro": 0.8
+      }
+    },
+    {
+      "model": "deepseek-pro-cloud",
+      "path": "cloud",
+      "acc": 0.8543,
+      "acc_lo": 0.8103,
+      "acc_hi": 0.8931,
+      "pct_of_sonnet": 95.3,
+      "usd_per_1m": 3.31,
+      "price_src": "published",
+      "tps_single": 39.0,
+      "per_bench": {
+        "arc": 1.0,
+        "gpqa": 0.68,
+        "gsm8k": 0.975,
+        "json": 1.0,
+        "mbpp": 0.6,
+        "mmlu": 0.95,
+        "mmlupro": 0.86
+      }
+    },
+    {
+      "model": "deepseek-flash",
+      "path": "hosted",
+      "acc": 0.8501,
+      "acc_lo": 0.8069,
+      "acc_hi": 0.8897,
+      "pct_of_sonnet": 94.8,
+      "usd_per_1m": 0.2618,
+      "price_src": "hosted(measured)",
+      "tps_single": 80.0,
+      "per_bench": {
+        "arc": 0.975,
+        "gpqa": 0.68,
+        "gsm8k": 1.0,
+        "json": 1.0,
+        "mbpp": 0.675,
+        "mmlu": 0.925,
+        "mmlupro": 0.8
+      }
+    },
+    {
+      "model": "gpt-oss-120b-cloud",
+      "path": "cloud",
+      "acc": 0.8442,
+      "acc_lo": 0.8,
+      "acc_hi": 0.8862,
+      "pct_of_sonnet": 94.2,
+      "usd_per_1m": 0.4905,
+      "price_src": "published",
+      "tps_single": 56.9,
+      "per_bench": {
+        "arc": 0.95,
+        "gpqa": 0.74,
+        "gsm8k": 0.925,
+        "json": 1.0,
+        "mbpp": 0.625,
+        "mmlu": 0.925,
+        "mmlupro": 0.82
+      }
+    },
+    {
+      "model": "qwen-coder-480b-cloud",
+      "path": "cloud",
+      "acc": 0.841,
+      "acc_lo": 0.7931,
+      "acc_hi": 0.8793,
+      "pct_of_sonnet": 93.8,
+      "usd_per_1m": 0.7874,
+      "price_src": "published",
+      "tps_single": 32.7,
+      "per_bench": {
+        "arc": 0.95,
+        "gpqa": 0.62,
+        "gsm8k": 0.975,
+        "json": 1.0,
+        "mbpp": 0.675,
+        "mmlu": 0.9,
+        "mmlupro": 0.86
+      }
+    },
+    {
+      "model": "haiku",
+      "path": "anchor",
+      "acc": 0.8364,
+      "acc_lo": 0.7931,
+      "acc_hi": 0.8828,
+      "pct_of_sonnet": 93.3,
+      "usd_per_1m": 3.8624,
+      "price_src": "hosted(measured)",
+      "tps_single": 105.3,
+      "per_bench": {
+        "arc": 0.95,
+        "gpqa": 0.7,
+        "gsm8k": 0.975,
+        "json": 1.0,
+        "mbpp": 0.65,
+        "mmlu": 0.875,
+        "mmlupro": 0.8
+      }
+    },
+    {
+      "model": "devstral-24b-cloud",
+      "path": "cloud",
+      "acc": 0.8239,
+      "acc_lo": 0.7793,
+      "acc_hi": 0.8655,
+      "pct_of_sonnet": 91.9,
+      "usd_per_1m": 0.2293,
+      "price_src": "published",
+      "tps_single": 7.8,
+      "per_bench": {
+        "arc": 0.975,
+        "gpqa": 0.62,
+        "gsm8k": 1.0,
+        "json": 1.0,
+        "mbpp": 0.625,
+        "mmlu": 0.825,
+        "mmlupro": 0.82
+      }
+    },
+    {
+      "model": "nemotron-ultra-cloud",
+      "path": "cloud",
+      "acc": 0.8168,
+      "acc_lo": 0.7724,
+      "acc_hi": 0.8621,
+      "pct_of_sonnet": 91.1,
+      "usd_per_1m": 3.3563,
+      "price_src": "published",
+      "tps_single": 9.6,
+      "per_bench": {
+        "arc": 0.925,
+        "gpqa": 0.56,
+        "gsm8k": 0.975,
+        "json": 1.0,
+        "mbpp": 0.6,
+        "mmlu": 0.925,
+        "mmlupro": 0.84
+      }
+    },
+    {
+      "model": "kimi-cloud",
+      "path": "cloud",
+      "acc": 0.8166,
+      "acc_lo": 0.7724,
+      "acc_hi": 0.8586,
+      "pct_of_sonnet": 91.1,
+      "usd_per_1m": 3.867,
+      "price_src": "published",
+      "tps_single": 32.9,
+      "per_bench": {
+        "arc": 0.975,
+        "gpqa": 0.46,
+        "gsm8k": 1.0,
+        "json": 1.0,
+        "mbpp": 0.7,
+        "mmlu": 0.95,
+        "mmlupro": 0.78
+      }
+    },
+    {
+      "model": "gpt-oss-20b-cloud",
+      "path": "cloud",
+      "acc": 0.792,
+      "acc_lo": 0.7448,
+      "acc_hi": 0.8379,
+      "pct_of_sonnet": 88.3,
+      "usd_per_1m": 0.1749,
+      "price_src": "published",
+      "tps_single": 14.4,
+      "per_bench": {
+        "arc": 0.9,
+        "gpqa": 0.56,
+        "gsm8k": 0.925,
+        "json": 1.0,
+        "mbpp": 0.625,
+        "mmlu": 0.875,
+        "mmlupro": 0.78
+      }
+    },
+    {
+      "model": "gemma3-27b-cloud",
+      "path": "cloud",
+      "acc": 0.771,
+      "acc_lo": 0.7172,
+      "acc_hi": 0.8207,
+      "pct_of_sonnet": 86.0,
+      "usd_per_1m": 0.1366,
+      "price_src": "published",
+      "tps_single": 13.6,
+      "per_bench": {
+        "arc": 0.975,
+        "gpqa": 0.48,
+        "gsm8k": 0.975,
+        "json": 1.0,
+        "mbpp": 0.6,
+        "mmlu": 0.775,
+        "mmlupro": 0.74
+      }
+    },
+    {
+      "model": "ministral-14b-cloud",
+      "path": "cloud",
+      "acc": 0.7616,
+      "acc_lo": 0.7103,
+      "acc_hi": 0.8103,
+      "pct_of_sonnet": 84.9,
+      "usd_per_1m": 0.2,
+      "price_src": "published",
+      "tps_single": 3.0,
+      "per_bench": {
+        "arc": 0.975,
+        "gpqa": 0.46,
+        "gsm8k": 0.95,
+        "json": 1.0,
+        "mbpp": 0.55,
+        "mmlu": 0.725,
+        "mmlupro": 0.8
+      }
+    },
+    {
+      "model": "nemotron-nano-30b-cloud",
+      "path": "cloud",
+      "acc": 0.7615,
+      "acc_lo": 0.7103,
+      "acc_hi": 0.8103,
+      "pct_of_sonnet": 84.9,
+      "usd_per_1m": 0.1879,
+      "price_src": "published",
+      "tps_single": 37.2,
+      "per_bench": {
+        "arc": 0.925,
+        "gpqa": 0.4,
+        "gsm8k": 0.925,
+        "json": 1.0,
+        "mbpp": 0.6,
+        "mmlu": 0.85,
+        "mmlupro": 0.78
+      }
+    },
+    {
+      "model": "mistral-small",
+      "path": "hosted",
+      "acc": 0.7407,
+      "acc_lo": 0.6897,
+      "acc_hi": 0.7897,
+      "pct_of_sonnet": 82.6,
+      "usd_per_1m": 0.0923,
+      "price_src": "hosted(measured)",
+      "tps_single": 93.7,
+      "per_bench": {
+        "arc": 0.925,
+        "gpqa": 0.38,
+        "gsm8k": 0.975,
+        "json": 1.0,
+        "mbpp": 0.55,
+        "mmlu": 0.85,
+        "mmlupro": 0.68
+      }
+    },
+    {
+      "model": "granite-8b",
+      "path": "selfhost",
+      "acc": 0.7345,
+      "acc_lo": 0.6793,
+      "acc_hi": 0.7862,
+      "pct_of_sonnet": 81.9,
+      "usd_per_1m": 0.1921,
+      "price_src": "watsonx",
+      "tps_single": 9.2,
+      "per_bench": {
+        "arc": 0.85,
+        "gpqa": 0.44,
+        "gsm8k": 0.9,
+        "json": 1.0,
+        "mbpp": 0.6,
+        "mmlu": 0.8,
+        "mmlupro": 0.7
+      }
+    },
+    {
+      "model": "ministral-8b-cloud",
+      "path": "cloud",
+      "acc": 0.7158,
+      "acc_lo": 0.6655,
+      "acc_hi": 0.769,
+      "pct_of_sonnet": 79.8,
+      "usd_per_1m": 0.15,
+      "price_src": "published",
+      "tps_single": 5.1,
+      "per_bench": {
+        "arc": 0.925,
+        "gpqa": 0.42,
+        "gsm8k": 0.9,
+        "json": 1.0,
+        "mbpp": 0.55,
+        "mmlu": 0.675,
+        "mmlupro": 0.7
+      }
+    },
+    {
+      "model": "ministral-3b-cloud",
+      "path": "cloud",
+      "acc": 0.7131,
+      "acc_lo": 0.6586,
+      "acc_hi": 0.7655,
+      "pct_of_sonnet": 79.5,
+      "usd_per_1m": 0.1,
+      "price_src": "published",
+      "tps_single": 44.3,
+      "per_bench": {
+        "arc": 0.875,
+        "gpqa": 0.36,
+        "gsm8k": 0.95,
+        "json": 1.0,
+        "mbpp": 0.575,
+        "mmlu": 0.7,
+        "mmlupro": 0.7
+      }
+    },
+    {
+      "model": "gemma3-12b-cloud",
+      "path": "cloud",
+      "acc": 0.709,
+      "acc_lo": 0.6517,
+      "acc_hi": 0.7621,
+      "pct_of_sonnet": 79.1,
+      "usd_per_1m": 0.1205,
+      "price_src": "published",
+      "tps_single": 25.1,
+      "per_bench": {
+        "arc": 0.925,
+        "gpqa": 0.32,
+        "gsm8k": 0.95,
+        "json": 1.0,
+        "mbpp": 0.65,
+        "mmlu": 0.7,
+        "mmlupro": 0.62
+      }
+    },
+    {
+      "model": "qwen-cloud",
+      "path": "cloud",
+      "acc": 0.6378,
+      "acc_lo": 0.5828,
+      "acc_hi": 0.6931,
+      "pct_of_sonnet": 71.1,
+      "usd_per_1m": 0.2466,
+      "price_src": "published",
+      "tps_single": 42.2,
+      "per_bench": {
+        "arc": 0.875,
+        "gpqa": 0.26,
+        "gsm8k": 0.8,
+        "json": 0.667,
+        "mbpp": 0.3,
+        "mmlu": 0.85,
+        "mmlupro": 0.78
+      }
+    },
+    {
+      "model": "gemma3-4b-cloud",
+      "path": "cloud",
+      "acc": 0.6203,
+      "acc_lo": 0.5655,
+      "acc_hi": 0.6793,
+      "pct_of_sonnet": 69.2,
+      "usd_per_1m": 0.0869,
+      "price_src": "published",
+      "tps_single": 18.4,
+      "per_bench": {
+        "arc": 0.725,
+        "gpqa": 0.28,
+        "gsm8k": 0.875,
+        "json": 1.0,
+        "mbpp": 0.575,
+        "mmlu": 0.7,
+        "mmlupro": 0.42
+      }
+    },
+    {
+      "model": "qwen-397b-cloud",
+      "path": "cloud",
+      "acc": 0.6142,
+      "acc_lo": 0.5552,
+      "acc_hi": 0.669,
+      "pct_of_sonnet": 68.5,
+      "usd_per_1m": 3.474,
+      "price_src": "published",
+      "tps_single": 53.4,
+      "per_bench": {
+        "arc": 0.825,
+        "gpqa": 0.18,
+        "gsm8k": 0.95,
+        "json": 0.4,
+        "mbpp": 0.325,
+        "mmlu": 0.85,
+        "mmlupro": 0.78
+      }
+    }
+  ],
+  "quality_bars": {
+    "90% sonnet": "devstral-24b-cloud",
+    "95% sonnet": "gemma-31b-cloud",
+    "99% sonnet": "sonnet"
+  },
+  "routing_roi": {
+    "weak": "devstral-24b-cloud",
+    "strong": "sonnet",
+    "n_test": 87,
+    "weak_acc": 0.8046,
+    "strong_acc": 0.8851,
+    "head_apgr": 0.0027,
+    "head_apgr_lo": -0.4415,
+    "head_apgr_hi": 0.4252
+  },
+  "breakeven": {
+    "GB10 (hal, amortized)": {
+      "fixed_monthly_usd": 160.6,
+      "breakeven_tokens_month": 153669505
+    },
+    "L40S (cloud)": {
+      "fixed_monthly_usd": 1138.8,
+      "breakeven_tokens_month": 1089656492
+    },
+    "H100 (cloud)": {
+      "fixed_monthly_usd": 1825.0,
+      "breakeven_tokens_month": 1746244379
+    },
+    "watsonx_floor_usd_month": [
+      1500,
+      5000
+    ]
+  },
+  "pricing_notes": {
+    "gpu_hr": {
+      "GB10 (hal, amortized)": 0.22,
+      "L40S (cloud)": 1.56,
+      "H100 (cloud)": 2.5
+    },
+    "watsonx_1m": {
+      "granite-8b": [
+        0.06,
+        0.25
+      ],
+      "granite-30b": [
+        0.2,
+        0.6
+      ]
+    },
+    "batch_mult_modeled": [
+      1,
+      10,
+      30
+    ],
+    "sources_fetched": "2026-06-24"
+  }
+}
